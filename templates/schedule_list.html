@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lịch sử bảng lịch trình</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <style>
+    body {
+      background: linear-gradient(to right, #e1f5fe, #fce4ec);
+      font-family: 'Times New Roman', serif;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 600px;
+      width: 100%;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+      padding: 30px 40px;
+    }
+    h3 {
+      color: #ff7043;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    .date-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 20px;
+      border-radius: 12px;
+      background: #fff3e0;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 6px rgb(255 112 67 / 0.15);
+      transition: background-color 0.3s ease;
+    }
+    .date-item:hover {
+      background: #ffe0b2;
+    }
+    .date-link {
+      font-weight: 600;
+      color: #d84315;
+      text-decoration: none;
+      font-size: 1.1rem;
+      user-select: none;
+      flex-grow: 1;
+      padding-right: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .date-link:hover {
+      text-decoration: underline;
+    }
+    .delete-btn {
+      background: none;
+      border: none;
+      color: #f44336;
+      font-size: 1.3rem;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.3s ease;
+      padding: 0;
+      line-height: 1;
+    }
+    .delete-btn:hover {
+      color: #b71c1c;
+    }
+    .btn-back {
+      display: inline-block;
+      margin-top: 24px;
+      padding: 8px 20px;
+      font-size: 1rem;
+      background-color: #f0f0f0;
+      color: #333;
+      border-radius: 20px;
+      border: 1px solid #ccc;
+      text-decoration: none;
+      transition: 0.3s ease;
+      user-select: none;
+      text-align: center;
+      width: fit-content;
+      box-shadow: 0 2px 6px rgb(0 0 0 / 0.1);
+    }
+    .btn-back:hover {
+      background-color: #e0e0e0;
+      color: #000;
+      box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+      text-decoration: none;
+    }
+    /* Alert spacing */
+    .alert {
+      font-family: 'Times New Roman', serif;
+      font-weight: 500;
+      font-size: 1rem;
+      margin-bottom: 1.5rem;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h3>📚 Lịch sử bảng lịch trình</h3>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if dates %}
+      <form method="POST" novalidate>
+        {% for d in dates %}
+          <div class="date-item">
+            <a href="{{ url_for('view_schedule_by_date', date=d) }}" class="date-link" title="Xem lịch trình ngày {{ d }}">🗓️ {{ d }}</a>
+            <button type="submit" name="delete_date" value="{{ d }}" class="delete-btn" title="Xóa ngày {{ d }}" aria-label="Xóa ngày {{ d }}">🗑️</button>
+          </div>
+        {% endfor %}
+      </form>
+    {% else %}
+      <p class="text-center text-muted">Chưa có bảng lịch trình nào.</p>
+    {% endif %}
+
+    <a href="/time_manager" class="btn-back">← Quay lại</a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
+</body>
+</html>

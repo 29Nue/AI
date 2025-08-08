@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>🧮 Công Cụ Tính Toán Vui</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    body {
+        background: linear-gradient(to right, #f0f8ff, #ffe4e1);
+        font-family: 'Times New Roman', serif;
+    }
+    .container-box {
+        max-width: 900px;
+        margin: 5vh auto;
+        padding: 30px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+    h1 {
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+</style>
+</head>
+<body>
+
+<div class="container-box">
+    <h1>🧮 Công Cụ Tính Toán Vui</h1>
+
+    <ul class="nav nav-tabs" id="calcTabs" role="tablist">
+        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#basicCalc">Máy tính</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#currency">Ngoại tệ</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#bmi">BMI</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#age">Tính tuổi</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#unit">Đổi đơn vị</a></li>
+    </ul>
+
+    <div class="tab-content mt-3">
+
+        <!-- Máy tính -->
+        <div class="tab-pane fade show active" id="basicCalc">
+            <div class="input-group mb-3">
+                <input type="text" id="calcDisplay" class="form-control text-end" readonly>
+            </div>
+            <div class="row g-2">
+                <!-- Hàng số -->
+                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('7')">7</button></div>
+                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('8')">8</button></div>
+                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('9')">9</button></div>
+                <div class="col-3"><button class="btn btn-warning w-100" onclick="appendCalc('/')">÷</button></div>
+
+                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('4')">4</button></div>
+                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('5')">5</button></div>
+                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('6')">6</button></div>
+                <div class="col-3"><button class="btn btn-warning w-100" onclick="appendCalc('*')">×</button></div>
+
+                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('1')">1</button></div>
+                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('2')">2</button></div>
+                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('3')">3</button></div>
+                <div class="col-3"><button class="btn btn-warning w-100" onclick="appendCalc('-')">−</button></div>
+
+                <div class="col-3"><button class="btn btn-danger w-100" onclick="clearCalc()">C</button></div>
+                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('0')">0</button></div>
+                <div class="col-3"><button class="btn btn-success w-100" onclick="calculate()">=</button></div>
+                <div class="col-3"><button class="btn btn-warning w-100" onclick="appendCalc('+')">+</button></div>
+
+                <!-- Nút mũ -->
+                <div class="col-4"><button class="btn btn-info w-100" onclick="appendCalc('**2')">x²</button></div>
+                <div class="col-4"><button class="btn btn-info w-100" onclick="appendCalc('**3')">x³</button></div>
+                <div class="col-4"><button class="btn btn-info w-100" onclick="appendCalc('**')">xʸ</button></div>
+
+                <div class="col-6"><button class="btn btn-info w-100" onclick="sqrtCalc()">√</button></div>
+                <div class="col-6"><button class="btn btn-info w-100" onclick="appendCalc('%')">%</button></div>
+            </div>
+
+        </div>
+
+       <!-- Ngoại tệ -->
+        <div class="tab-pane fade" id="currency">
+            <div class="mb-3">
+                <input type="number" id="amount" class="form-control" placeholder="Nhập số tiền">
+            </div>
+
+            <div class="mb-3">
+                <select id="currencySelect" class="form-select">
+                    <option value="usd">USD (1 USD = 24,000 VND)</option>
+                    <option value="eur">EUR (1 EUR = 26,000 VND)</option>
+                    <option value="jpy">JPY – Yên Nhật (1 JPY = 170 VND)</option>
+                    <option value="krw">KRW – Won Hàn (1 KRW = 18 VND)</option>
+                    <option value="cny">CNY – Nhân dân tệ Trung (1 CNY = 3,400 VND)</option>
+                    <option value="thb">THB – Baht Thái (1 THB = 700 VND)</option>
+                    <option value="inr">INR – Rupee Ấn (1 INR = 300 VND)</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <select id="directionSelect" class="form-select">
+                    <option value="vnd_to_foreign">VNĐ ➡ Ngoại tệ</option>
+                    <option value="foreign_to_vnd">Ngoại tệ ➡ VNĐ</option>
+                </select>
+            </div>
+
+            <button class="btn btn-primary" onclick="convertCurrency()">Chuyển đổi</button>
+            <p class="mt-3 fw-bold" id="currencyResult"></p>
+        </div>
+
+        <!-- BMI -->
+        <div class="tab-pane fade" id="bmi">
+            <input type="number" id="height" class="form-control mb-2" placeholder="Chiều cao (cm)">
+            <input type="number" id="weight" class="form-control mb-2" placeholder="Cân nặng (kg)">
+            <button class="btn btn-primary" onclick="calcBMI()">Tính BMI</button>
+            <p class="mt-3 fw-bold" id="bmiResult"></p>
+        </div>
+
+        <!-- Tính tuổi -->
+        <div class="tab-pane fade" id="age">
+            <input type="date" id="birthDate" class="form-control mb-2">
+            <button class="btn btn-primary" onclick="calcAge()">Tính tuổi</button>
+            <p class="mt-3 fw-bold" id="ageResult"></p>
+        </div>
+
+        <!-- Đổi đơn vị -->
+<div class="tab-pane fade" id="unit">
+    <div class="container py-3">
+        
+        <!-- Chiều dài -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">📏 Chiều dài</h5>
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-4">
+                        <input type="number" id="meter" class="form-control" placeholder="Nhập mét">
+                    </div>
+                    <div class="col-md-8 d-flex gap-2">
+                        <button class="btn btn-outline-primary" onclick="mToCm()">→ cm</button>
+                        <button class="btn btn-outline-primary" onclick="mToInch()">→ inch</button>
+                    </div>
+                </div>
+                <p class="mt-2 fw-bold text-success" id="unitLength"></p>
+            </div>
+        </div>
+
+        <!-- Cân nặng -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">⚖ Cân nặng</h5>
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-4">
+                        <input type="number" id="kg" class="form-control" placeholder="Nhập kg">
+                    </div>
+                    <div class="col-md-8 d-flex gap-2">
+                        <button class="btn btn-outline-warning" onclick="kgToGram()">→ g</button>
+                        <button class="btn btn-outline-warning" onclick="kgToLb()">→ lb</button>
+                    </div>
+                </div>
+                <p class="mt-2 fw-bold text-success" id="unitWeight"></p>
+            </div>
+        </div>
+
+        <!-- Nhiệt độ -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">🌡 Nhiệt độ</h5>
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-4">
+                        <input type="number" id="celsius" class="form-control" placeholder="Nhập °C">
+                    </div>
+                    <div class="col-md-8 d-flex gap-2">
+                        <button class="btn btn-outline-danger" onclick="cToF()">→ °F</button>
+                        <button class="btn btn-outline-danger" onclick="cToK()">→ K</button>
+                    </div>
+                </div>
+                <p class="mt-2 fw-bold text-success" id="unitTemp"></p>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<a href="/" class="btn btn-outline-secondary mt-3">&larr; Quay lại trang chủ</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Máy tính
+    function appendCalc(val) { document.getElementById('calcDisplay').value += val; }
+    function clearCalc() { document.getElementById('calcDisplay').value = ''; }
+    function calculate() {
+        try { document.getElementById('calcDisplay').value = eval(document.getElementById('calcDisplay').value); }
+        catch { alert('Phép tính không hợp lệ'); }
+    }
+    function sqrtCalc() {
+        try { 
+            let val = parseFloat(document.getElementById('calcDisplay').value);
+            document.getElementById('calcDisplay').value = Math.sqrt(val); 
+        }
+        catch { alert('Không thể tính căn'); }
+    }
+
+    // Ngoại tệ
+    function convertCurrency() {
+        const amount = parseFloat(document.getElementById("amount").value);
+        const currency = document.getElementById("currencySelect").value;
+        const direction = document.getElementById("directionSelect").value;
+
+        const rates = { 
+            usd: 24000, // Đô Mỹ
+            eur: 26000, // Euro
+            jpy: 170,   // Yên Nhật
+            krw: 18,    // Won Hàn
+            cny: 3400,  // Nhân dân tệ
+            thb: 700,   // Baht Thái
+            inr: 300    // Rupee Ấn
+        };
+
+        let result = "";
+
+        if (isNaN(amount) || amount <= 0) {
+            result = "Vui lòng nhập số tiền hợp lệ.";
+        } else {
+            if (direction === "vnd_to_foreign") {
+                result = (amount / rates[currency]).toFixed(2) + " " + currency.toUpperCase();
+            } else {
+                result = (amount * rates[currency]).toLocaleString() + " VNĐ";
+            }
+        }
+        document.getElementById("currencyResult").innerText = result;
+    }
+
+    // BMI
+    function calcBMI() {
+        let h = parseFloat(document.getElementById('height').value) / 100;
+        let w = parseFloat(document.getElementById('weight').value);
+        if (isNaN(h) || isNaN(w) || h <= 0) return alert('Nhập dữ liệu hợp lệ');
+        let bmi = (w / (h*h)).toFixed(1);
+        let status = bmi < 18.5 ? 'Gầy' : bmi < 25 ? 'Bình thường' : bmi < 30 ? 'Thừa cân' : 'Béo phì';
+        document.getElementById('bmiResult').innerText = `BMI: ${bmi} (${status})`;
+    }
+
+    // Tính tuổi
+    function calcAge() {
+        let birth = new Date(document.getElementById('birthDate').value);
+        if (!birth.getTime()) return alert('Chọn ngày sinh');
+        let age = new Date().getFullYear() - birth.getFullYear();
+        document.getElementById('ageResult').innerText = `Tuổi: ${age}`;
+    }
+
+    // Đổi đơn vị
+    function mToCm() {
+        let m = parseFloat(document.getElementById('meter').value);
+        if (isNaN(m)) return alert('Nhập số mét');
+        document.getElementById('unitLength').innerText = `${m} m = ${m*100} cm`;
+    }
+    function mToInch() {
+        let m = parseFloat(document.getElementById('meter').value);
+        if (isNaN(m)) return alert('Nhập số mét');
+        document.getElementById('unitLength').innerText = `${m} m = ${(m*39.3701).toFixed(2)} inch`;
+    }
+    function kgToGram() {
+        let kg = parseFloat(document.getElementById('kg').value);
+        if (isNaN(kg)) return alert('Nhập số kg');
+        document.getElementById('unitWeight').innerText = `${kg} kg = ${kg*1000} g`;
+    }
+    function kgToLb() {
+        let kg = parseFloat(document.getElementById('kg').value);
+        if (isNaN(kg)) return alert('Nhập số kg');
+        document.getElementById('unitWeight').innerText = `${kg} kg = ${(kg*2.20462).toFixed(2)} lb`;
+    }
+    function cToF() {
+        let c = parseFloat(document.getElementById('celsius').value);
+        if (isNaN(c)) return alert('Nhập nhiệt độ');
+        document.getElementById('unitTemp').innerText = `${c}°C = ${(c*9/5+32).toFixed(1)}°F`;
+    }
+    function cToK() {
+        let c = parseFloat(document.getElementById('celsius').value);
+        if (isNaN(c)) return alert('Nhập nhiệt độ');
+        document.getElementById('unitTemp').innerText = `${c}°C = ${(c+273.15).toFixed(2)} K`;
+    }
+</script>
+</body>
+</html>

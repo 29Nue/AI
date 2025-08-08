@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>AI Fusion – Dịch & Giọng Nói</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      background: linear-gradient(120deg, #e0e7ff 0%, #f3f4f6 100%);
+      font-family: 'Quicksand', sans-serif;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      color: #2c2c2c;
+    }
+    .box {
+      max-width: 760px;
+      margin: 0 auto 3rem;
+      background: #fff;
+      border-radius: 24px;
+      box-shadow: 0 15px 40px rgba(50, 50, 93, 0.1);
+      padding: 40px 35px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.8rem;
+      font-family: 'Times New Roman', Times, serif;
+
+    }
+    h2 {
+      font-weight: 700;
+      font-size: 2.2rem;
+      color: #3a3a3a;
+      text-align: center;
+      margin-bottom: 2.5rem;
+      user-select: none;
+      letter-spacing: 1.2px;
+      font-family: 'Times New Roman', Times, serif;
+
+    }
+    h4 {
+      font-weight: 600;
+      font-size: 1.2rem;
+      color: #444;
+      margin-bottom: 1rem;
+      border-bottom: 2px solid #6c63ff;
+      padding-bottom: 6px;
+      user-select: none;
+      font-family: 'Times New Roman', Times, serif;
+
+    }
+
+    /* Textarea */
+    textarea.form-control {
+      min-height: 140px;
+      resize: vertical;
+      font-size: 1rem;
+      padding: 12px 15px;
+      border-radius: 12px;
+      border: 1.8px solid #ccc;
+      transition: border-color 0.3s ease;
+      font-family: 'Times New Roman', Times, serif;
+
+    }
+    textarea.form-control:focus {
+      border-color: #6c63ff;
+      box-shadow: 0 0 6px rgba(108, 99, 255, 0.3);
+      outline: none;
+      font-family: 'Times New Roman', Times, serif;
+
+    }
+
+    /* Select box */
+    select.form-select {
+      border-radius: 12px;
+      border: 1.8px solid #ccc;
+      font-size: 1rem;
+      padding: 8px 12px;
+      transition: border-color 0.3s ease;
+      font-family: 'Times New Roman', Times, serif;
+
+    }
+    select.form-select:focus {
+      border-color: #6c63ff;
+      box-shadow: 0 0 6px rgba(108, 99, 255, 0.3);
+      outline: none;
+      font-family: 'Times New Roman', Times, serif;
+
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background-color: #6c63ff;
+      border: none;
+      font-weight: 600;
+      font-size: 1.05rem;
+      border-radius: 14px;
+      padding: 10px 0;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 6px 12px rgba(108, 99, 255, 0.3);
+      font-family: 'Times New Roman', Times, serif;
+
+    }
+    .btn-primary:hover {
+      background-color: #574fd6;
+      box-shadow: 0 8px 16px rgba(87, 79, 214, 0.5);
+      font-family: 'Times New Roman', Times, serif;
+
+    }
+    .btn-danger {
+      background-color: #ff4d4f;
+      border: none;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 14px;
+      padding: 9px 20px;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 6px 12px rgba(255, 77, 79, 0.4);
+      font-family: 'Times New Roman', Times, serif;
+
+    }
+    .btn-danger:hover {
+      background-color: #d9363e;
+      box-shadow: 0 8px 16px rgba(217, 54, 62, 0.6);
+    }
+    .btn-warning {
+      background-color: #ffc107;
+      color: black;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 14px;
+      padding: 9px 20px;
+      border: none;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      box-shadow: 0 6px 12px rgba(255, 193, 7, 0.4);
+
+    }
+    .btn-warning:hover {
+      background-color: #e0a800;
+      color: black;
+      box-shadow: 0 8px 16px rgba(224, 168, 0, 0.6);
+    }
+    .btn-success {
+      background-color: #28a745;
+      border: none;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 14px;
+      padding: 9px 24px;
+      transition: background-color 0.3s ease;
+      box-shadow: 0 6px 12px rgba(40, 167, 69, 0.4);
+    }
+    .btn-success:hover {
+      background-color: #218838;
+      box-shadow: 0 8px 16px rgba(33, 136, 56, 0.6);
+    }
+
+    /* Alert */
+    .alert {
+      font-size: 1rem;
+      line-height: 1.5;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      user-select: text;
+    }
+
+    /* Audio */
+    audio {
+      width: 100%;
+      margin-top: 14px;
+      border-radius: 12px;
+      box-shadow: 0 3px 12px rgba(0,0,0,0.15);
+    }
+
+    /* Form rows */
+    .form-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: flex-end;
+      margin-top: 1.6rem;
+    }
+    .form-row > * {
+      flex-grow: 1;
+    }
+    .form-row .col-md-8 {
+      flex: 1 1 60%;
+      min-width: 200px;
+    }
+    .form-row .col-md-4 {
+      flex: 1 1 35%;
+      min-width: 120px;
+    }
+
+    /* Mic button and status */
+    #speechForm .mb-3 {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    #speechForm .btn-danger {
+      min-width: 140px;
+    }
+    #recordingStatus {
+      font-style: italic;
+      color: #555;
+      user-select: none;
+      flex-grow: 1;
+      font-size: 0.9rem;
+    }
+
+    /* Text center btn quay lại */
+    .text-center.mt-4 {
+      margin-top: 3rem !important;
+      user-select: none;
+    }
+
+    /* Responsive tweaks */
+    @media (max-width: 576px) {
+      .form-row {
+        flex-direction: column;
+      }
+      .form-row > * {
+        flex-grow: 1 !important;
+        min-width: auto !important;
+      }
+      #speechForm .mb-3 {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      #speechForm .btn-danger {
+        width: 100%;
+        min-width: unset;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="box">
+    <h2>🌐 AI Fusion – Dịch & Giọng Nói</h2>
+
+    <!-- PHẦN 1: Dịch Văn Bản -->
+    <h4>✍️ Dịch Văn Bản</h4>
+    <form method="POST" action="/translate" class="mb-4">
+      <textarea name="text_input" class="form-control" placeholder="Nhập nội dung để dịch...">{{ original_text }}</textarea>
+      <div class="form-row mt-3 align-items-end">
+        <div class="col-md-8">
+          <label class="form-label fw-semibold mb-1">Ngôn ngữ đích:</label>
+          <select name="lang" class="form-select">
+            <option value="en" {% if lang == 'en' %}selected{% endif %}>🇬🇧 Tiếng Anh</option>
+            <option value="vi" {% if lang == 'vi' %}selected{% endif %}>🇻🇳 Tiếng Việt</option>
+            <option value="ja" {% if lang == 'ja' %}selected{% endif %}>🇯🇵 Tiếng Nhật</option>
+            <option value="ko" {% if lang == 'ko' %}selected{% endif %}>🇰🇷 Tiếng Hàn</option>
+            <option value="fr" {% if lang == 'fr' %}selected{% endif %}>🇫🇷 Tiếng Pháp</option>
+          </select>
+        </div>
+        <div class="col-md-4 d-grid mt-2 mt-md-0">
+          <button type="submit" class="btn btn-primary">🔁 Dịch</button>
+        </div>
+      </div>
+    </form>
+
+{% if translated %}
+<div class="mt-3">
+  <p><b>Kết quả dịch:</b> {{ translated }}</p>
+
+  <!-- Nút phát âm -->
+  <form id="speakTextForm" class="d-inline">
+    <input type="hidden" name="text_to_speak" value="{{ translated }}">
+    <input type="hidden" name="lang" value="{{ lang }}">
+    <button type="button" id="speakTextBtn" class="btn btn-success">
+      🔊 Nghe bản dịch
+    </button>
+  </form>
+</div>
+{% endif %}
+
+<script>
+document.getElementById("speakTextBtn")?.addEventListener("click", async () => {
+    const text = document.querySelector("input[name='text_to_speak']").value;
+    const lang = document.querySelector("input[name='lang']").value;
+
+    const res = await fetch("/speak_text", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text, lang })
+    });
+
+    if (res.ok) {
+        const blob = await res.blob();
+        const audio = new Audio(URL.createObjectURL(blob));
+        audio.play();
+    }
+});
+</script>
+
+
+
+    <hr class="my-4">
+
+    <!-- PHẦN 2: Ghi âm và dịch -->
+    <h4>🎙️ Ghi Âm Giọng Nói → Dịch & Phát Âm</h4>
+    <form id="speechForm" method="POST" enctype="multipart/form-data" action="/speech_translate">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Nhấn mic để ghi âm:</label><br>
+        <input type="file" name="voice_input" id="voice_input" accept="audio/*" class="form-control" hidden />
+        <button type="button" class="btn btn-danger" onclick="startRecording()">🎤 Bắt đầu ghi</button>
+        <span id="recordingStatus"></span>
+      </div>
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Ngôn ngữ dịch sang:</label>
+        <select name="target_lang" class="form-select">
+          <option value="en">🇬🇧 Tiếng Anh</option>
+          <option value="vi">🇻🇳 Tiếng Việt</option>
+          <option value="ja">🇯🇵 Tiếng Nhật</option>
+          <option value="ko">🇰🇷 Tiếng Hàn</option>
+          <option value="fr">🇫🇷 Tiếng Pháp</option>
+        </select>
+      </div>
+      <button id="submitBtn" type="submit" class="btn btn-warning" disabled>🚀 Gửi & Dịch</button>
+    </form>
+
+    {% if speech_translated %}
+    <div class="alert alert-secondary mt-4">
+      🗣️ <strong>Giọng nói thành chữ:</strong> {{ speech_text }}<br />
+      🌍 <strong>Dịch:</strong> {{ speech_translated }}
+    </div>
+    <audio controls>
+      <source src="{{ url_for('static', filename='audio/output.mp3') }}" type="audio/mpeg" />
+      Trình duyệt không hỗ trợ audio.
+    </audio>
+    {% endif %}
+
+    <div class="text-center mt-4">
+      <a href="/" class="btn btn-outline-secondary">🏠 Quay lại Trang Chủ</a>
+    </div>
+  </div>
+
+  <script>
+    let mediaRecorder;
+    let audioChunks = [];
+
+    async function startRecording() {
+      const status = document.getElementById("recordingStatus");
+      status.textContent = "🎙️ Đang ghi âm...";
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder = new MediaRecorder(stream);
+
+      audioChunks = [];
+      mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+
+      mediaRecorder.onstop = async () => {
+        const blob = new Blob(audioChunks, { type: 'audio/webm' });
+        const file = new File([blob], "recorded.webm", { type: 'audio/webm' });
+        const input = document.getElementById("voice_input");
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        input.files = dataTransfer.files;
+        document.getElementById("submitBtn").disabled = false;
+        status.textContent = "✅ Ghi xong! Nhấn gửi để dịch.";
+      };
+
+      mediaRecorder.start();
+      setTimeout(() => mediaRecorder.stop(), 4000);
+    }
+  </script>
+</body>
+</html>

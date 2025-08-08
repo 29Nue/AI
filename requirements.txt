@@ -1,0 +1,7 @@
+Flask
+deep-translator
+SpeechRecognition
+gTTS
+pydub
+google-generativeai
+gunicorn
