@@ -64,7 +64,6 @@ def translate():
         lang=lang
     )
 
-
 @app.route("/speech_translate", methods=["POST"])
 def speech_translate():
     r = sr.Recognizer()
@@ -168,14 +167,13 @@ def emotion():
 
     return render_template("emotion.html", emotion_text=emotion_text, emotion_response=emotion_response)
 
-#AI quan li thoi gian
-# ===================== HÀM PHỤ =====================
-def load_schedules():
-    if not os.path.exists(DATA_PATH):
-        return {}
-    with open(DATA_PATH, "r", encoding="utf-8") as f:
-        return json.load(f)
+# QUẢN LÝ THỜI GIAN – GIAI ĐOẠN 1: Lập lịch
+import os
+import json
+from datetime import datetime
+import random
 
+# 🎯 Hàm đánh giá trạng thái và lời khen theo thời gian hoàn thành
 def get_task_status(task_time_str: str, done_time_str: str):
     fmt = "%H:%M"
     task_time = datetime.strptime(task_time_str, fmt)
@@ -202,30 +200,22 @@ def get_task_status(task_time_str: str, done_time_str: str):
     ]
 
     if diff_minutes <= 0:
-        return "hoanthanh", random.choice(khen_dung_gio) # type: ignore
+        return "hoanthanh", random.choice(khen_dung_gio)
     elif diff_minutes <= 30:
-        return "hoanthanh_som", random.choice(khen_30p) # type: ignore
+        return "hoanthanh_som", random.choice(khen_30p)
     else:
-        return "hoanthanh_tre", random.choice(loanghoang) # type: ignore
+        return "hoanthanh_tre", random.choice(loanghoang)
 
-# ===================== ROUTE CHÍNH =====================
-
-# GIAI ĐOẠN 1: Lập lịch
+# 🧱 GIAI ĐOẠN 1: Lập bảng lịch trình
 @app.route("/time_manager", methods=["GET", "POST"])
 def time_manager():
-    if "email" not in session: # type: ignore
-        return redirect("/login")  # bắt buộc đăng nhập
-
-    email = session["email"] # type: ignore
-    schedules = load_schedules()
-
     if request.method == "POST":
         selected_date = request.form.get("date")
         tasks = json.loads(request.form.get("tasks_json", "[]"))
 
-        if email not in schedules:
-            schedules[email] = {}
-        schedules[email][selected_date] = tasks
+        schedules = load_schedules()
+
+        schedules[selected_date] = tasks
 
         with open(DATA_PATH, "w", encoding="utf-8") as f:
             json.dump(schedules, f, ensure_ascii=False, indent=2)
@@ -234,40 +224,30 @@ def time_manager():
 
     return render_template("time_manager.html")
 
-# GIAI ĐOẠN 2.1: Danh sách các ngày đã có lịch
+# 🗂️ GIAI ĐOẠN 2.1: Danh sách các ngày đã có lịch
 @app.route("/schedule_list", methods=["GET", "POST"])
 def view_schedule_list():
-    if "email" not in session: # type: ignore
-        return redirect("/login")
-
-    email = session["email"] # type: ignore
-    schedules = load_schedules().get(email, {})
+    schedules = load_schedules()
 
     if request.method == "POST":
         date_to_delete = request.form.get("delete_date")
         if date_to_delete and date_to_delete in schedules:
             del schedules[date_to_delete]
-            all_data = load_schedules()
-            all_data[email] = schedules
             with open(DATA_PATH, "w", encoding="utf-8") as f:
-                json.dump(all_data, f, ensure_ascii=False, indent=2)
+                json.dump(schedules, f, ensure_ascii=False, indent=2)
             flash(f"🗑️ Đã xóa lịch trình ngày {date_to_delete}", "info")
         else:
             flash("❌ Không tìm thấy ngày cần xóa", "danger")
 
-        return redirect(url_for("view_schedule_list"))
+        return redirect(url_for("view_schedule_list"))  # 👈 ở lại danh sách
 
     sorted_dates = sorted(schedules.keys(), reverse=True)
     return render_template("schedule_list.html", dates=sorted_dates)
 
-# GIAI ĐOẠN 2.2: Chi tiết lịch trình theo ngày
+# 📝 GIAI ĐOẠN 2.2: Chi tiết lịch trình theo ngày
 @app.route("/schedule/<date>", methods=["GET", "POST"])
 def view_schedule_by_date(date):
-    if "email" not in session: # type: ignore
-        return redirect("/login")
-
-    email = session["email"] # type: ignore
-    schedules = load_schedules().get(email, {})
+    schedules = load_schedules()
     today = datetime.now().date()
     date_obj = datetime.strptime(date, "%Y-%m-%d").date()
 
@@ -308,13 +288,12 @@ def view_schedule_by_date(date):
             schedules[date].pop(index)
             flash("🗑️ Đã xóa lịch trình!", "info")
 
-        # Lưu lại cho user hiện tại
-        all_data = load_schedules()
-        all_data[email] = schedules
+        # Ghi file và redirect sau khi xử lý bất kỳ action nào
         with open(DATA_PATH, "w", encoding="utf-8") as f:
-            json.dump(all_data, f, ensure_ascii=False, indent=2)
+            json.dump(schedules, f, ensure_ascii=False, indent=2)
 
         return redirect(url_for("view_schedule_by_date", date=date))
+
 
     # Nếu là GET
     task_list = schedules.get(date, [])
