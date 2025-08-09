@@ -50,25 +50,18 @@ def translate():
     translated_text = ""
     original_text = ""
     lang = "en"
-    tts_file = None
 
     if request.method == "POST":
         original_text = request.form.get("text_input", "")
         lang = request.form.get("lang", "en")
         if original_text:
             translated_text = GoogleTranslator(source='auto', target=lang).translate(original_text)
-            
-            # Tạo file phát âm từ văn bản dịch
-            tts = gTTS(translated_text, lang=lang)
-            tts_file = "static/audio/text_output.mp3"
-            tts.save(tts_file)
 
     return render_template(
         "translate.html",
         translated=translated_text,
         original_text=original_text,
-        lang=lang,
-        tts_file=tts_file
+        lang=lang
     )
 
 
