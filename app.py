@@ -24,12 +24,14 @@ DATA_PATH = "data/schedules.json"
 def load_schedules():
     if not os.path.exists(DATA_PATH):
         return {}
-
-    with open(DATA_PATH, "r", encoding="utf-8") as f:
-        try:
-            return json.load(f)
-        except json.JSONDecodeError:
-            return {}
+    try:
+        with open(DATA_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            if not isinstance(data, dict):
+                return {}
+            return data
+    except json.JSONDecodeError:
+        return {}
 
 os.makedirs("static/audio", exist_ok=True)
 os.makedirs("data", exist_ok=True)
@@ -64,8 +66,11 @@ def translate():
         lang=lang
     )
 
+
+# AI GHI ÂM + DỊCH + PHÁT ÂM
 @app.route("/speech_translate", methods=["POST"])
 def speech_translate():
+    os.makedirs("static/audio", exist_ok=True)
     r = sr.Recognizer()
 
     if "voice_input" not in request.files:
@@ -76,6 +81,7 @@ def speech_translate():
     wav_path = "static/audio/converted.wav"
     file.save(input_path)
 
+    # Chuyển webm → wav
     AudioSegment.from_file(input_path).export(wav_path, format="wav")
 
     try:
@@ -100,9 +106,10 @@ def speech_translate():
     target_lang = request.form.get("target_lang", "en")
     speech_translated = GoogleTranslator(source='auto', target=target_lang).translate(speech_text)
 
-    # Giữ nguyên phần phát âm giọng nói
+    # Phát âm bản dịch từ giọng nói
     tts = gTTS(speech_translated, lang=target_lang)
-    tts.save("static/audio/output.mp3")
+    mp3_path = "static/audio/output.mp3"
+    tts.save(mp3_path)
 
     return render_template(
         "translate.html",
@@ -113,20 +120,6 @@ def speech_translate():
         speech_translated=speech_translated
     )
 
-# Phát âm văn bản dịch (không reload trang)
-@app.route("/speak_translated", methods=["POST"])
-def speak_translated():
-    text = request.form.get("text_to_speak", "")
-    lang = request.form.get("lang", "en")
-
-    if not text:
-        return "No text provided", 400
-
-    tts = gTTS(text, lang=lang)
-    mp3_path = "static/audio/text_output.mp3"
-    tts.save(mp3_path)
-
-    return send_file(mp3_path, mimetype="audio/mpeg") # type: ignore
 
 # AI HỌC TẬP
 @app.route("/ai_tutor", methods=["GET", "POST"])

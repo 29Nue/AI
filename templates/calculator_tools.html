@@ -39,43 +39,52 @@
 
     <div class="tab-content mt-3">
 
-        <!-- Máy tính -->
-        <div class="tab-pane fade show active" id="basicCalc">
-            <div class="input-group mb-3">
-                <input type="text" id="calcDisplay" class="form-control text-end" readonly>
-            </div>
-            <div class="row g-2">
-                <!-- Hàng số -->
-                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('7')">7</button></div>
-                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('8')">8</button></div>
-                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('9')">9</button></div>
-                <div class="col-3"><button class="btn btn-warning w-100" onclick="appendCalc('/')">÷</button></div>
+       <!-- Máy tính -->
+    <div class="tab-pane fade show active" id="basicCalc">
+    <div class="input-group mb-3">
+        <input type="text" id="calcDisplay" class="form-control text-end fs-4" readonly>
+    </div>
 
-                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('4')">4</button></div>
-                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('5')">5</button></div>
-                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('6')">6</button></div>
-                <div class="col-3"><button class="btn btn-warning w-100" onclick="appendCalc('*')">×</button></div>
+    <div class="row g-2 mb-2">
+        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('7')">7</button></div>
+        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('8')">8</button></div>
+        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('9')">9</button></div>
+        <div class="col-3"><button class="btn btn-warning w-100" onclick="appendCalc('/')">÷</button></div>
+    </div>
 
-                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('1')">1</button></div>
-                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('2')">2</button></div>
-                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('3')">3</button></div>
-                <div class="col-3"><button class="btn btn-warning w-100" onclick="appendCalc('-')">−</button></div>
+    <div class="row g-2 mb-2">
+        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('4')">4</button></div>
+        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('5')">5</button></div>
+        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('6')">6</button></div>
+        <div class="col-3"><button class="btn btn-warning w-100" onclick="appendCalc('*')">×</button></div>
+    </div>
 
-                <div class="col-3"><button class="btn btn-danger w-100" onclick="clearCalc()">C</button></div>
-                <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('0')">0</button></div>
-                <div class="col-3"><button class="btn btn-success w-100" onclick="calculate()">=</button></div>
-                <div class="col-3"><button class="btn btn-warning w-100" onclick="appendCalc('+')">+</button></div>
+    <div class="row g-2 mb-2">
+        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('1')">1</button></div>
+        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('2')">2</button></div>
+        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('3')">3</button></div>
+        <div class="col-3"><button class="btn btn-warning w-100" onclick="appendCalc('-')">−</button></div>
+    </div>
 
-                <!-- Nút mũ -->
-                <div class="col-4"><button class="btn btn-info w-100" onclick="appendCalc('**2')">x²</button></div>
-                <div class="col-4"><button class="btn btn-info w-100" onclick="appendCalc('**3')">x³</button></div>
-                <div class="col-4"><button class="btn btn-info w-100" onclick="appendCalc('**')">xʸ</button></div>
+    <div class="row g-2 mb-2">
+        <div class="col-3"><button class="btn btn-success w-100" onclick="calculate()">=</button></div>
+        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('0')">0</button></div>
+        <div class="col-3"><button class="btn btn-warning w-100" onclick="backspaceCalc()">⌫</button></div>
+        <div class="col-3"><button class="btn btn-warning w-100" onclick="appendCalc('+')">+</button></div>
+    </div>
 
-                <div class="col-6"><button class="btn btn-info w-100" onclick="sqrtCalc()">√</button></div>
-                <div class="col-6"><button class="btn btn-info w-100" onclick="appendCalc('%')">%</button></div>
-            </div>
+    <div class="row g-2 mb-2">
+        <div class="col-3"><button class="btn btn-danger w-100" onclick="clearCalc()">C</button></div>
+        <div class="col-3"><button class="btn btn-info w-100" onclick="appendCalc('**2')">x²</button></div>
+        <div class="col-3"><button class="btn btn-info w-100" onclick="appendCalc('**3')">x³</button></div>
+        <div class="col-3"><button class="btn btn-info w-100" onclick="appendCalc('**')">xʸ</button></div>
+    </div>
 
-        </div>
+    <div class="row g-2">
+        <div class="col-6"><button class="btn btn-info w-100" onclick="sqrtCalc()">√</button></div>
+        <div class="col-6"><button class="btn btn-info w-100" onclick="appendCalc('%')">%</button></div>
+    </div>
+    </div>
 
        <!-- Ngoại tệ -->
         <div class="tab-pane fade" id="currency">
@@ -199,6 +208,11 @@
         }
         catch { alert('Không thể tính căn'); }
     }
+    function backspaceCalc() {
+    let display = document.getElementById("calcDisplay");
+    display.value = display.value.slice(0, -1);
+    }
+
 
     // Ngoại tệ
     function convertCurrency() {
