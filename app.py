@@ -168,14 +168,7 @@ def emotion():
 
     return render_template("emotion.html", emotion_text=emotion_text, emotion_response=emotion_response)
 
-from flask import Flask, render_template, request, redirect, url_for, flash, session
-import os, json, random
-from datetime import datetime
-
-app = Flask(__name__)
-app.secret_key = "supersecret"  # đổi khi chạy thật
-DATA_PATH = "data/schedules.json"
-
+#AI quan li thoi gian
 # ===================== HÀM PHỤ =====================
 def load_schedules():
     if not os.path.exists(DATA_PATH):
@@ -209,21 +202,21 @@ def get_task_status(task_time_str: str, done_time_str: str):
     ]
 
     if diff_minutes <= 0:
-        return "hoanthanh", random.choice(khen_dung_gio)
+        return "hoanthanh", random.choice(khen_dung_gio) # type: ignore
     elif diff_minutes <= 30:
-        return "hoanthanh_som", random.choice(khen_30p)
+        return "hoanthanh_som", random.choice(khen_30p) # type: ignore
     else:
-        return "hoanthanh_tre", random.choice(loanghoang)
+        return "hoanthanh_tre", random.choice(loanghoang) # type: ignore
 
 # ===================== ROUTE CHÍNH =====================
 
 # GIAI ĐOẠN 1: Lập lịch
 @app.route("/time_manager", methods=["GET", "POST"])
 def time_manager():
-    if "email" not in session:
+    if "email" not in session: # type: ignore
         return redirect("/login")  # bắt buộc đăng nhập
 
-    email = session["email"]
+    email = session["email"] # type: ignore
     schedules = load_schedules()
 
     if request.method == "POST":
@@ -244,10 +237,10 @@ def time_manager():
 # GIAI ĐOẠN 2.1: Danh sách các ngày đã có lịch
 @app.route("/schedule_list", methods=["GET", "POST"])
 def view_schedule_list():
-    if "email" not in session:
+    if "email" not in session: # type: ignore
         return redirect("/login")
 
-    email = session["email"]
+    email = session["email"] # type: ignore
     schedules = load_schedules().get(email, {})
 
     if request.method == "POST":
@@ -270,10 +263,10 @@ def view_schedule_list():
 # GIAI ĐOẠN 2.2: Chi tiết lịch trình theo ngày
 @app.route("/schedule/<date>", methods=["GET", "POST"])
 def view_schedule_by_date(date):
-    if "email" not in session:
+    if "email" not in session: # type: ignore
         return redirect("/login")
 
-    email = session["email"]
+    email = session["email"] # type: ignore
     schedules = load_schedules().get(email, {})
     today = datetime.now().date()
     date_obj = datetime.strptime(date, "%Y-%m-%d").date()
