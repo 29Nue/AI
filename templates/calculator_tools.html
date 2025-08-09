@@ -85,13 +85,13 @@
 
             <div class="mb-3">
                 <select id="currencySelect" class="form-select">
-                    <option value="usd">USD (1 USD = 24,000 VND)</option>
-                    <option value="eur">EUR (1 EUR = 26,000 VND)</option>
-                    <option value="jpy">JPY – Yên Nhật (1 JPY = 170 VND)</option>
-                    <option value="krw">KRW – Won Hàn (1 KRW = 18 VND)</option>
-                    <option value="cny">CNY – Nhân dân tệ Trung (1 CNY = 3,400 VND)</option>
-                    <option value="thb">THB – Baht Thái (1 THB = 700 VND)</option>
-                    <option value="inr">INR – Rupee Ấn (1 INR = 300 VND)</option>
+                    <option value="usd">USD (1 USD = 26.225 VND)</option>
+                    <option value="eur">EUR (1 EUR = 30.531 VND)</option>
+                    <option value="jpy">JPY – Yên Nhật (1 JPY = 173.61 VND)</option>
+                    <option value="krw">KRW – Won Hàn (1 KRW = 18.15 VND)</option>
+                    <option value="cny">CNY – Nhân dân tệ Trung (1 CNY = 3,594 VND)</option>
+                    <option value="thb">THB – Baht Thái (1 THB = 794.75 VND)</option>
+                    <option value="inr">INR – Rupee Ấn (1 INR = 297.67 VND)</option>
                 </select>
             </div>
 
@@ -207,15 +207,14 @@
         const direction = document.getElementById("directionSelect").value;
 
         const rates = { 
-            usd: 24000, // Đô Mỹ
-            eur: 26000, // Euro
-            jpy: 170,   // Yên Nhật
-            krw: 18,    // Won Hàn
-            cny: 3400,  // Nhân dân tệ
-            thb: 700,   // Baht Thái
-            inr: 300    // Rupee Ấn
+            usd: 26.225, // Đô Mỹ
+            eur: 30.531, // Euro
+            jpy: 173.61,   // Yên Nhật
+            krw: 18.15,    // Won Hàn
+            cny: 3594,  // Nhân dân tệ
+            thb: 794.75,   // Baht Thái
+            inr: 297.67  // Rupee Ấn
         };
-
         let result = "";
 
         if (isNaN(amount) || amount <= 0) {

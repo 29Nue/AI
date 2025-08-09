@@ -264,38 +264,8 @@
 {% if translated %}
 <div class="mt-3">
   <p><b>Kết quả dịch:</b> {{ translated }}</p>
-
-  <!-- Nút phát âm -->
-  <form id="speakTextForm" class="d-inline">
-    <input type="hidden" name="text_to_speak" value="{{ translated }}">
-    <input type="hidden" name="lang" value="{{ lang }}">
-    <button type="button" id="speakTextBtn" class="btn btn-success">
-      🔊 Nghe bản dịch
-    </button>
-  </form>
 </div>
 {% endif %}
-
-<script>
-document.getElementById("speakTextBtn")?.addEventListener("click", async () => {
-    const text = document.querySelector("input[name='text_to_speak']").value;
-    const lang = document.querySelector("input[name='lang']").value;
-
-    const res = await fetch("/speak_text", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text, lang })
-    });
-
-    if (res.ok) {
-        const blob = await res.blob();
-        const audio = new Audio(URL.createObjectURL(blob));
-        audio.play();
-    }
-});
-</script>
-
-
 
     <hr class="my-4">
 

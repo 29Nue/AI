@@ -71,8 +71,10 @@
     {
       "content": "Làm về",
       "time": "16:30",
-      "done": false,
-      "done_time": null
+      "done": true,
+      "done_time": "18:04",
+      "status": "hoanthanh_tre",
+      "message": "😴 Trễ thiệt rồi, nhưng vẫn hoàn thành là đáng khen!"
     }
   ]
 }
