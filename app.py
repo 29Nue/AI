@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash # type: ignore
+from flask import Flask, render_template, request, redirect, url_for, flash, session # type: ignore
 from deep_translator import GoogleTranslator  # type: ignore
 import speech_recognition as sr  # type: ignore
 from gtts import gTTS  # type: ignore
@@ -8,6 +8,7 @@ import os
 import google.generativeai as genai  # type: ignore
 import json
 from datetime import datetime
+from werkzeug.security import generate_password_hash, check_password_hash # type: ignore
 
 
 
@@ -20,6 +21,18 @@ app.secret_key = "emiu-dang-yeu-vo-cuc-2025"
 
 # Đường dẫn lưu lịch trình
 DATA_PATH = "data/schedules.json"
+
+USERS_FILE = "data/users.json"
+def load_users():
+    if os.path.exists(USERS_FILE):
+        with open(USERS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {}
+
+def save_users(users):
+    with open(USERS_FILE, "w", encoding="utf-8") as f:
+        json.dump(users, f, ensure_ascii=False, indent=4)
+
 
 def load_schedules():
     if not os.path.exists(DATA_PATH):
@@ -45,7 +58,50 @@ if not os.path.exists(DATA_PATH):
 @app.route("/")
 def home():
     return render_template("index.html")
+#Dang nhap
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
 
+        users = load_users()
+
+        if username in users and check_password_hash(users[username], password):
+            session["user"] = username
+            flash("Đăng nhập thành công!", "success")
+            return redirect(url_for("home"))
+        else:
+            flash("Sai tài khoản hoặc mật khẩu!", "danger")
+            return redirect(url_for("login"))
+
+    return render_template("login.html")
+
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form["username"]
+        password = request.form["password"]
+
+        users = load_users()
+        if username in users:
+            flash("Tên đăng nhập đã tồn tại!", "danger")
+            return render_template("register.html")
+
+        users[username] = generate_password_hash(password)
+        save_users(users)
+        flash("Đăng ký thành công! Hãy đăng nhập.", "success")
+        return render_template("register.html")
+
+    return render_template("register.html")
+
+@app.route("/logout")
+def logout():
+    session.pop("user", None) # type: ignore
+    flash("Đã đăng xuất!", "info")
+    return redirect(url_for("home"))
+#===============
 # AI DỊCH
 @app.route("/translate", methods=["GET", "POST"])
 def translate():
@@ -202,13 +258,21 @@ def get_task_status(task_time_str: str, done_time_str: str):
 # 🧱 GIAI ĐOẠN 1: Lập bảng lịch trình
 @app.route("/time_manager", methods=["GET", "POST"])
 def time_manager():
+    if "user" not in session:
+        flash("⚠️ Vui lòng đăng nhập trước!", "danger")
+        return redirect(url_for("login"))
+
+    username = session["user"]
+    schedules = load_schedules()
+
     if request.method == "POST":
         selected_date = request.form.get("date")
         tasks = json.loads(request.form.get("tasks_json", "[]"))
 
-        schedules = load_schedules()
+        if username not in schedules:
+            schedules[username] = {}
 
-        schedules[selected_date] = tasks
+        schedules[username][selected_date] = tasks
 
         with open(DATA_PATH, "w", encoding="utf-8") as f:
             json.dump(schedules, f, ensure_ascii=False, indent=2)
@@ -217,30 +281,46 @@ def time_manager():
 
     return render_template("time_manager.html")
 
+
 # 🗂️ GIAI ĐOẠN 2.1: Danh sách các ngày đã có lịch
 @app.route("/schedule_list", methods=["GET", "POST"])
 def view_schedule_list():
+    if "user" not in session:
+        flash("⚠️ Vui lòng đăng nhập trước!", "danger")
+        return redirect(url_for("login"))
+
+    username = session["user"]
     schedules = load_schedules()
+    user_schedules = schedules.get(username, {})
 
     if request.method == "POST":
         date_to_delete = request.form.get("delete_date")
-        if date_to_delete and date_to_delete in schedules:
-            del schedules[date_to_delete]
+        if date_to_delete and date_to_delete in user_schedules:
+            del user_schedules[date_to_delete]
+            schedules[username] = user_schedules
             with open(DATA_PATH, "w", encoding="utf-8") as f:
                 json.dump(schedules, f, ensure_ascii=False, indent=2)
             flash(f"🗑️ Đã xóa lịch trình ngày {date_to_delete}", "info")
         else:
             flash("❌ Không tìm thấy ngày cần xóa", "danger")
 
-        return redirect(url_for("view_schedule_list"))  # 👈 ở lại danh sách
+        return redirect(url_for("view_schedule_list"))
 
-    sorted_dates = sorted(schedules.keys(), reverse=True)
+    sorted_dates = sorted(user_schedules.keys(), reverse=True)
     return render_template("schedule_list.html", dates=sorted_dates)
+
 
 # 📝 GIAI ĐOẠN 2.2: Chi tiết lịch trình theo ngày
 @app.route("/schedule/<date>", methods=["GET", "POST"])
 def view_schedule_by_date(date):
+    if "user" not in session:
+        flash("⚠️ Vui lòng đăng nhập trước!", "danger")
+        return redirect(url_for("login"))
+
+    username = session["user"]
     schedules = load_schedules()
+    user_schedules = schedules.get(username, {})
+
     today = datetime.now().date()
     date_obj = datetime.strptime(date, "%Y-%m-%d").date()
 
@@ -248,11 +328,11 @@ def view_schedule_by_date(date):
         action = request.form.get("action")
         index = int(request.form.get("index", -1))
 
-        if date not in schedules or not (0 <= index < len(schedules[date])):
+        if date not in user_schedules or not (0 <= index < len(user_schedules[date])):
             flash("❌ Không tìm thấy lịch trình!", "danger")
             return redirect(url_for("view_schedule_by_date", date=date))
 
-        task = schedules[date][index]
+        task = user_schedules[date][index]
 
         if action == "done":
             if date_obj > today:
@@ -278,18 +358,17 @@ def view_schedule_by_date(date):
             flash("✏️ Đã cập nhật lịch trình!", "success")
 
         elif action == "delete":
-            schedules[date].pop(index)
+            user_schedules[date].pop(index)
             flash("🗑️ Đã xóa lịch trình!", "info")
 
-        # Ghi file và redirect sau khi xử lý bất kỳ action nào
+        schedules[username] = user_schedules
         with open(DATA_PATH, "w", encoding="utf-8") as f:
             json.dump(schedules, f, ensure_ascii=False, indent=2)
 
         return redirect(url_for("view_schedule_by_date", date=date))
 
-
     # Nếu là GET
-    task_list = schedules.get(date, [])
+    task_list = user_schedules.get(date, [])
     now = datetime.now()
 
     for task in task_list:
@@ -301,12 +380,12 @@ def view_schedule_by_date(date):
 
     return render_template("schedule_detail.html", date=date, tasks=task_list, now=now)
 
-
 @app.route('/calculator_tools')
 def calculator_tools():
     return render_template('calculator_tools.html')
-
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    app.run(debug=True) 
+# if __name__ == "__main__":
+#     port = int(os.environ.get("PORT", 5000))
+#     app.run(host="0.0.0.0", port=port)
 

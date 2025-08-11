@@ -1,1 +1,14 @@
-{}
+{
+  "huan": {
+    "2025-08-11": [
+      {
+        "content": "hoc",
+        "time": "07:30",
+        "done": true,
+        "done_time": "14:53",
+        "status": "hoanthanh_tre",
+        "message": "🧸 Bạn vẫn ổn chứ? Muộn nhưng có trách nhiệm!"
+      }
+    ]
+  }
+}
