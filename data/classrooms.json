@@ -1,0 +1,21 @@
+[
+    {
+        "id": 101,
+        "name": "Lớp 101",
+        "teacher": "Thầy A",
+        "time": "Thứ 2 & Thứ 4, 8h-10h",
+        "description": "Giới thiệu kiến thức cơ bản",
+        "subject": "math",
+        "link": "https://meet.jit.si/class101"
+    },
+    {
+        "id": 102,
+        "name": "Lớp 102",
+        "teacher": "Cô B",
+        "time": "Thứ 3 & Thứ 5, 10h-12h",
+        "description": "Thực hành nâng cao",
+        "subject": "math",
+        "link": "https://meet.jit.si/class102",
+        "status": "done"
+    }
+]

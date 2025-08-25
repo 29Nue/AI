@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ room.name }} - Phòng Học Live</title>
+  <style>
+    body, html { margin:0; padding:0; height:100%; }
+    iframe { width:100%; height:100%; border:none; }
+  </style>
+</head>
+<body>
+  <iframe src="{{ room.link }}" allow="camera; microphone; fullscreen"></iframe>
+</body>
+</html>

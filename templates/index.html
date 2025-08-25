@@ -53,16 +53,21 @@
 
     .btn-calculator { background: #9c27b0; }
     .btn-calculator:hover { background: #7b1fa2; }
+
+    .btn-education { background: #4caf50; }
+    .btn-education:hover { background: #388e3c; }
+
   </style>
 </head>
 <body>
-  <div class="container-box">
-    <h1>🤖 AI Fusion</h1>
+  <div class="container-box position-relative">
+  <h1>🤖 AI Fusion</h1>
 
-    <div class="mb-4">
-    {% if 'user' in session %}
+  <div class="mb-4">
+    {% if 'username' in session %}
       <span class="me-2" style="font-size:1.2rem; font-weight:600;">
-  👋 Xin chào, <b>{{ session['user'] }}</b></span>
+        👋 Xin chào, <b>{{ session['username'] }}</b> ({{ session['role'] }})
+      </span>
       <a href="/logout" class="text-danger" title="Đăng xuất" style="font-size:1.2rem;">
         <i class="bi bi-box-arrow-right"></i>
       </a>
@@ -72,12 +77,23 @@
     {% endif %}
   </div>
 
+  {% if session.get('role') == 'admin' %}
+    <div class="position-absolute bottom-0 end-0 m-3">
+      <a href="/approve_teachers" class="btn btn-sm btn-danger shadow">
+        📋 Duyệt giảng viên
+      </a>
+    </div>
+  {% endif %}
+
+
 
     <a href="/translate" class="feature-btn btn-translate">🌍 Dịch Văn Bản & Giọng Nói</a>
+    <a href="/ai_education" class="feature-btn btn-education">🎓 AI Hỗ Trợ Giáo Dục</a>
     <a href="/ai_tutor" class="feature-btn btn-tutor">📘 AI Hỗ Trợ Học Tập</a>
-    <a href="/emotion" class="feature-btn btn-emotion">🧠 Phân Tích Cảm Xúc</a>
+    <a href="/emotion" class="feature-btn btn-emotion">🧠AI Phân Tích Cảm Xúc</a>
     <a href="/time_manager" class="feature-btn btn-timemanager">🕒 Quản Lý Thời Gian</a>
     <a href="/calculator_tools" class="feature-btn btn-calculator">🧮 Công Cụ Tính Toán Vui</a>
+    
   </div>
 </body>
 

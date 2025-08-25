@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ subject_name }} - AI Học Cùng Bạn</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(to right, #e0f7fa, #f1f8e9);
+      font-family: 'Times New Roman', Times, serif;
+    }
+    .container-box {
+      max-width: 900px;
+      margin: 5vh auto;
+      padding: 30px;
+      background: white;
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    h1 { font-weight: 700; margin-bottom: 20px; color: #333; }
+    .nav-tabs .nav-link.active { background-color: #4caf50; color: white; font-weight: 600; }
+    .card { margin-bottom: 20px; }
+    .card-header { font-weight: 600; font-size: 1.1rem; }
+    .btn-back { margin-top: 20px; color: #555; text-decoration: none; }
+    .btn-back:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<div class="container-box">
+  <h1>🎓 {{ subject_name }} - AI Học Cùng Bạn</h1>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-3" id="educationTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+      <button class="nav-link active" id="class-tab" data-bs-toggle="tab" data-bs-target="#class" type="button">🏫 Lớp Học</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="lecture-tab" data-bs-toggle="tab" data-bs-target="#lecture" type="button">📖 Bài Giảng</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="quiz-tab" data-bs-toggle="tab" data-bs-target="#quiz" type="button">📝 Kiểm Tra</button>
+    </li>
+    <li class="nav-item" role="presentation">
+      <button class="nav-link" id="links-tab" data-bs-toggle="tab" data-bs-target="#links" type="button">🔗 Link Học Tập</button>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div class="tab-content" id="educationTabsContent">
+
+    <!-- Lớp Học -->
+    <div class="tab-pane fade show active" id="class">
+      <!-- Nút Thêm Lớp -->
+      <div class="mb-3 text-end">
+        {% if session.get('role') in ['admin', 'teacher'] %}
+        <button class="btn btn-success btn-sm" data-bs-toggle="collapse" data-bs-target="#addClassForm">
+          <i class="bi bi-plus-circle"></i> Thêm Lớp Học
+        </button>
+      {% endif %}
+
+      </div>
+      <div class="collapse mb-3" id="addClassForm">
+        <form method="POST">
+          <input type="text" name="class_name" placeholder="Tên lớp học" class="form-control mb-2" required>
+          <input type="text" name="teacher" placeholder="Giáo viên" class="form-control mb-2" required>
+          <input type="text" name="time" placeholder="Thời gian" class="form-control mb-2" required>
+          <textarea name="description" placeholder="Mô tả" class="form-control mb-2" required></textarea>
+          <button type="submit" class="btn btn-primary btn-sm">Tạo Lớp</button>
+        </form>
+      </div>
+
+      <!-- Danh sách lớp học -->
+      {% for cls in classrooms %}
+      <div class="card d-flex flex-row align-items-center justify-content-between mb-2">
+        <div class="card-body">
+          <strong>{{ cls.name }}</strong><br>
+          Giáo viên: {{ cls.teacher }}<br>
+          Thời gian: {{ cls.time }}<br>
+          Mô tả: {{ cls.description }}<br><br>
+
+          {% if cls.status == "done" %}
+            <span class="badge bg-success">Đã hoàn thành ✅</span>
+          {% else %}
+            <a href="/class/{{ cls.id }}" class="btn btn-primary btn-sm">
+              <i class="bi bi-door-open"></i> Vào Phòng Học
+            </a>
+          {% endif %}
+        </div>
+
+        <!-- Cột bên phải chứa nút -->
+        <div class="p-3 d-flex flex-column gap-2">
+          {% if cls.status != "done" %}
+            <!-- Nút hoàn thành -->
+            <form method="POST" action="/class/{{ cls.id }}/complete">
+              <button type="submit" class="btn btn-outline-success btn-sm" title="Đánh dấu hoàn thành">
+                <i class="bi bi-check-lg"></i>
+              </button>
+            </form>
+          {% else %}
+            <!-- Nút xóa khi đã hoàn thành -->
+            <form method="POST" action="/class/{{ cls.id }}/delete" 
+                  onsubmit="return confirm('Bạn có chắc muốn xóa lớp này không?');">
+              <button type="submit" class="btn btn-outline-danger btn-sm" title="Xóa lớp">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+      {% endfor %}
+</div>
+ <!-- Bài Giảng -->
+<div class="tab-pane fade" id="lecture">
+
+  <!-- Nút thêm bài giảng -->
+  <div class="text-end mb-2">
+    {% if session.get("username") %}
+    <button class="btn btn-success btn-sm" data-bs-toggle="collapse" data-bs-target="#addLectureForm">
+      <i class="bi bi-plus-circle"></i> Thêm Bài Giảng
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- Form thêm bài giảng -->
+  <div class="collapse mb-2" id="addLectureForm">
+    <form method="POST" action="{{ url_for('upload_lecture') }}" enctype="multipart/form-data">
+      <input type="text" name="title" placeholder="Tiêu đề bài giảng" class="form-control mb-2" required>
+      <input type="file" name="file" class="form-control mb-2" accept=".pdf,.doc,.ppt,.pptx,.zip" required>
+      <button type="submit" class="btn btn-primary btn-sm">📤 Upload</button>
+    </form>
+  </div>
+
+  <!-- Danh sách bài giảng dạng bảng -->
+<!-- Danh sách bài giảng dạng bảng -->
+{% if lectures %}
+<table class="table table-striped table-bordered">
+  <thead>
+    <tr>
+      <th>Tiêu đề</th>
+      <th>Người tải lên</th>
+      <th>Ngày tải</th>
+      <th>Xem</th>
+      <th>Tải về</th>
+      {% if session.get('role') == 'teacher' %}
+      <th>Hành động</th>
+      {% endif %}
+    </tr>
+  </thead>
+  <tbody>
+    {% for lec in lectures %}
+    <tr>
+      <td>{{ lec.title }}</td>
+      <td>{{ lec.uploader }}</td>
+      <td>{{ lec.uploaded_at if lec.uploaded_at else 'N/A' }}</td>
+      <td>
+        {% set ext = lec.filename.split('.')[-1].lower() %}
+        {% if ext == 'pdf' %}
+          <a href="{{ url_for('view_lecture', filename=lec.filename) }}" target="_blank" class="btn btn-primary btn-sm">👁 Xem PDF</a>
+        {% else %}
+          <span class="text-muted" title="Chỉ PDF mới xem trực tiếp được">❌</span>
+        {% endif %}
+      </td>
+      <td>
+        <a href="{{ url_for('download_lecture', filename=lec.filename) }}" class="btn btn-success btn-sm">
+          📥 Tải về
+        </a>
+      </td>
+      {% if session.get('role') == 'teacher' %}
+      <td class="d-flex gap-1">
+        <!-- Nút sửa -->
+        <a href="{{ url_for('edit_lecture', lecture_id=lec.id) }}" class="btn btn-warning btn-sm">✏️</a>
+        <!-- Nút xóa -->
+        <form method="POST" action="{{ url_for('delete_lecture', lecture_id=lec.id) }}" 
+              onsubmit="return confirm('Bạn có chắc muốn xóa bài giảng này không?');">
+          <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+        </form>
+      </td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p class="text-muted m-0">Chưa có bài giảng nào được tải lên.</p>
+{% endif %}
+
+
+</div>
+
+    <!-- Kiểm Tra -->
+    <div class="tab-pane fade" id="quiz">
+      <div class="card">
+        <div class="card-header">Kiểm Tra 1</div>
+        <div class="card-body">
+          Số câu hỏi: 10<br>
+          Thời gian: 30 phút<br>
+          <button class="btn btn-primary btn-sm mt-2">📝 Bắt đầu</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Link Học Tập -->
+<div class="tab-pane fade" id="links">
+  <!-- Nút thêm link -->
+  <div class="mb-3 text-end">
+    {% if session.get("username") %}
+    <button class="btn btn-success btn-sm" data-bs-toggle="collapse" data-bs-target="#addLinkForm">
+      <i class="bi bi-plus-circle"></i> Thêm Link Học Tập
+    </button>
+    {% endif %}
+  </div>
+
+  <!-- Form thêm link -->
+  <div class="collapse mb-3" id="addLinkForm">
+    <form method="POST" action="{{ url_for('add_link') }}">
+      <input type="text" name="title" placeholder="Tên link" class="form-control mb-2" required>
+      <input type="text" name="description" placeholder="Mô tả link" class="form-control mb-2">
+      <input type="url" name="url" placeholder="Đường dẫn (https://...)" class="form-control mb-2" required>
+      <button type="submit" class="btn btn-primary btn-sm">📤 Thêm Link</button>
+    </form>
+  </div>
+
+  <!-- Danh sách link -->
+  <style>
+  /* Thu nhỏ font chữ và padding bảng */
+  table.table-sm th, table.table-sm td {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.900rem;
+    vertical-align: middle;
+  }
+
+  /* Giới hạn width cột Hành động */
+  table.table-sm th.action-col, table.table-sm td.action-col {
+    width: 80px;
+    text-align: center;
+    white-space: nowrap; /* không xuống dòng */
+  }
+
+  /* Nút xóa nhỏ hơn */
+  .btn-sm {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.4rem;
+  }
+</style>
+
+  {% if links %}
+  <table class="table table-striped table-bordered table-sm">
+    <thead>
+      <tr>
+        <th>Tên</th>
+        <th>Mô tả</th>
+        <th>URL</th>
+        {% if session.get("role") in ["admin", "teacher"] %}
+        <th class="action-col">Hành động</th>
+        {% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for link in links %}
+      <tr>
+        <td>{{ link.title }}</td>
+        <td>{{ link.description }}</td>
+        <td><a href="{{ link.url }}" target="_blank">{{ link.url }}</a></td>
+        {% if session.get("role") in ["admin", "teacher"] %}
+        <td class="action-col">
+          <form method="POST" action="{{ url_for('delete_link', link_id=link.id) }}" 
+                onsubmit="return confirm('Bạn có chắc muốn xóa link này không?');">
+            <button type="submit" class="btn btn-outline-danger btn-sm">❌</button>
+          </form>
+        </td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-muted m-0">Chưa có link học tập nào.</p>
+  {% endif %}
+
+
+  </div> <!-- đóng tab-content -->
+
+  <a href="/" class="btn btn-outline-secondary mt-3">&larr; Quay lại trang chủ</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

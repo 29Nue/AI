@@ -1,4 +1,22 @@
 {
-    "nhi": "scrypt:32768:8:1$jZKbG4fEleeNvRwd$a22ffca0619e273bfa772ed349c2ec98d44d668686cd80e64d0b043f2d930c1b764641de359c79699c71d1beae2c234c4eec9a8aba2ca35f9f5e29594a7cc87c",
-    "huan": "scrypt:32768:8:1$3kud7cmS6ziGHIBn$f46557960af41eaa4dfe72b33de91ff9380ca534141c42d1f4e11221269ec7eb88f2701405e6db52583d2b2eac39067395e1f0a0cd19ddcf5ac55f3d25c9d143"
+    "nhi": {
+        "password": "scrypt:32768:8:1$vJz8MCoyUnpKkQLc$3cda9a02876a3a961307882b2e33462b5f1a5a853d57de793793432c0a2a319ac24c2c44070f9cb44a4a2404a81b7e0dfd191f48e361cb72d967cd707f3fa3a8",
+        "role": "admin",
+        "approved": true
+    },
+    "huan": {
+        "password": "scrypt:32768:8:1$lTm1ullPv7nIuTcp$89cc4ef4d0c3e8a3e38141a15a3527b8110bde3d1d8bf15cf79e09f1383dc804935793ae3a3f7238379b9c48a082be7b3049b6fb6944b05035527ca4dc812d2c",
+        "role": "teacher",
+        "approved": true
+    },
+    "bảo": {
+        "password": "scrypt:32768:8:1$vDDbcHqUy0uTnJS7$390f6deba8032f2cc6dded1442d638341cb5b270c6180f7df270b5d2a91273f2d1acc14ed1a659532519bb177752565f76410af25de8bec02e9579f270619195",
+        "role": "teacher",
+        "approved": true
+    },
+    "dương": {
+        "password": "scrypt:32768:8:1$fUgS7iudW4KIoivM$6a0b611cf370331446beb3de958181e128a455efdc836cf3400252e16e5d35b5bf3cabc2b2fe65b7f6319deea5d4c16c38e81c98de452881eb74941dd90d188f",
+        "role": "student",
+        "approved": true
+    }
 }

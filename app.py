@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session # type: ignore
+from flask import Flask, render_template, request, redirect, url_for, flash, session,send_from_directory # type: ignore
 from deep_translator import GoogleTranslator  # type: ignore
 import speech_recognition as sr  # type: ignore
 from gtts import gTTS  # type: ignore
@@ -9,7 +9,6 @@ import google.generativeai as genai  # type: ignore
 import json
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash # type: ignore
-
 
 
 # Cài đặt
@@ -62,45 +61,128 @@ def home():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
-        username = request.form["username"]
+        username = request.form["username"].strip()
         password = request.form["password"]
 
-        users = load_users()
+        # Check admin
+        if username == "nhi" and password == "123456":
+            session["username"] = "nhi"
+            session["role"] = "admin"
+            flash("Đăng nhập thành công với quyền Admin!", "success")
+            return redirect("/")
 
-        if username in users and check_password_hash(users[username], password):
-            session["user"] = username
-            flash("Đăng nhập thành công!", "success")
-            return redirect(url_for("home"))
-        else:
-            flash("Sai tài khoản hoặc mật khẩu!", "danger")
-            return redirect(url_for("login"))
+        users = load_users()
+        if username not in users:
+            flash("Tài khoản không tồn tại!", "danger")
+            return render_template("login.html")
+
+        user = users[username]
+
+        if not check_password_hash(user["password"], password):
+            flash("Mật khẩu không đúng!", "danger")
+            return render_template("login.html")
+
+        # Check duyệt giảng viên
+        if user["role"] == "teacher" and not user.get("approved", False):
+            flash("Tài khoản giảng viên của bạn chưa được duyệt!", "warning")
+            return render_template("login.html")
+
+        # Lưu session
+        session["username"] = username
+        session["role"] = user["role"]
+
+        flash(f"Đăng nhập thành công! Bạn là { 'Giảng viên' if user['role']=='teacher' else 'Học sinh' }.", "success")
+        return redirect("/")
 
     return render_template("login.html")
 
+users = {
+    "nhi": {"password": "nhi123", "role": "admin", "approved": True, "created_at": str(datetime.now())}
+}
+@app.route("/approve_teachers")
+def approve_teachers():
+    users = load_users()
+    teachers = []
+    for username, info in users.items():
+        if info.get("role") == "teacher":
+            teachers.append({
+                "username": username,
+                "created_at": info.get("created_at", "N/A"),
+                "approved": info.get("approved", False)
+            })
+    return render_template("approve_teachers.html", teachers=teachers)
+
+
+@app.route("/approve_teacher/<username>")
+def approve_teacher(username):
+    users = load_users()
+    if username in users and users[username].get("role") == "teacher":
+        users[username]["approved"] = True
+        save_users(users)
+        flash(f"✅ Đã duyệt giảng viên {username} thành công!", "success")
+    else:
+        flash("⚠️ Không tìm thấy giảng viên cần duyệt!", "danger")
+    return redirect(url_for("approve_teachers"))
+
+
+@app.route("/remove_teacher/<username>")
+def remove_teacher(username):
+    users = load_users()
+    if username in users and users[username].get("role") == "teacher":
+        users.pop(username)
+        save_users(users)
+        flash(f"🗑️ Đã xóa giảng viên {username} thành công!", "danger")
+    else:
+        flash("⚠️ Không tìm thấy giảng viên cần xóa!", "warning")
+    return redirect(url_for("approve_teachers"))
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
-        username = request.form["username"]
+        username = request.form["username"].strip().lower()
         password = request.form["password"]
 
         users = load_users()
+        
+        # ❌ Không cho trùng với bất kỳ username nào trong JSON
         if username in users:
-            flash("Tên đăng nhập đã tồn tại!", "danger")
+            flash("Tên đăng ký đã tồn tại! Vui lòng chọn tên khác.", "danger")
             return render_template("register.html")
 
-        users[username] = generate_password_hash(password)
+        # ❌ Không cho trùng với tài khoản admin mặc định
+        if username == "nhi":
+            flash("Tên này được dành cho admin, hãy chọn tên khác!", "danger")
+            return render_template("register.html")
+
+        # Phân loại vai trò (nếu form có chọn role)
+        role = request.form.get("role", "student")
+
+        user_data = {
+            "password": generate_password_hash(password),
+            "role": role,
+            "approved": True if role == "student" else False
+        }
+
+        users[username] = user_data
         save_users(users)
-        flash("Đăng ký thành công! Hãy đăng nhập.", "success")
-        return render_template("register.html")
+
+        if role == "teacher":
+            flash("Đăng ký thành công! Vui lòng chờ admin duyệt tài khoản giảng viên.", "info")
+        else:
+            flash("Đăng ký thành công! Hãy đăng nhập.", "success")
+
+        return redirect(url_for("login"))  # ✅ về trang login
 
     return render_template("register.html")
 
+
+
 @app.route("/logout")
 def logout():
-    session.pop("user", None) # type: ignore
-    flash("Đã đăng xuất!", "info")
-    return redirect(url_for("home"))
+    session.clear()  # Xóa toàn bộ session
+    flash("Bạn đã đăng xuất!", "info")
+    return redirect(url_for("login"))  # Quay về trang login
+
 #===============
 # AI DỊCH
 @app.route("/translate", methods=["GET", "POST"])
@@ -258,11 +340,11 @@ def get_task_status(task_time_str: str, done_time_str: str):
 # 🧱 GIAI ĐOẠN 1: Lập bảng lịch trình
 @app.route("/time_manager", methods=["GET", "POST"])
 def time_manager():
-    if "user" not in session:
+    if "username" not in session:
         flash("⚠️ Vui lòng đăng nhập trước!", "danger")
         return redirect(url_for("login"))
 
-    username = session["user"]
+    username = session["username"]
     schedules = load_schedules()
 
     if request.method == "POST":
@@ -281,15 +363,14 @@ def time_manager():
 
     return render_template("time_manager.html")
 
-
 # 🗂️ GIAI ĐOẠN 2.1: Danh sách các ngày đã có lịch
 @app.route("/schedule_list", methods=["GET", "POST"])
 def view_schedule_list():
-    if "user" not in session:
+    if "username" not in session:
         flash("⚠️ Vui lòng đăng nhập trước!", "danger")
         return redirect(url_for("login"))
 
-    username = session["user"]
+    username = session["username"]
     schedules = load_schedules()
     user_schedules = schedules.get(username, {})
 
@@ -309,15 +390,14 @@ def view_schedule_list():
     sorted_dates = sorted(user_schedules.keys(), reverse=True)
     return render_template("schedule_list.html", dates=sorted_dates)
 
-
 # 📝 GIAI ĐOẠN 2.2: Chi tiết lịch trình theo ngày
 @app.route("/schedule/<date>", methods=["GET", "POST"])
 def view_schedule_by_date(date):
-    if "user" not in session:
+    if "username" not in session:
         flash("⚠️ Vui lòng đăng nhập trước!", "danger")
         return redirect(url_for("login"))
 
-    username = session["user"]
+    username = session["username"]
     schedules = load_schedules()
     user_schedules = schedules.get(username, {})
 
@@ -380,9 +460,244 @@ def view_schedule_by_date(date):
 
     return render_template("schedule_detail.html", date=date, tasks=task_list, now=now)
 
+# tinh toan vui
 @app.route('/calculator_tools')
 def calculator_tools():
     return render_template('calculator_tools.html')
+
+
+DATA_FILE = "data/classrooms.json"
+
+def load_classrooms():
+    try:
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
+
+def save_classrooms(data):
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
+
+# Trang chính AI Hỗ Trợ Giáo Dục
+@app.route("/ai_education", methods=["GET", "POST"])
+def ai_education():
+    user = session.get("user", "Khách")
+    classrooms = load_classrooms()
+    lectures = load_lectures()
+    links = load_links()   # ← load link học tập từ JSON
+
+    return render_template("ai_education.html", 
+                           user=user, 
+                           classrooms=classrooms,
+                           lectures=lectures,
+                           links=links)   # ← truyền links vào template
+
+
+    # Nếu form Thêm Lớp được submit
+    if request.method == "POST":
+        class_name = request.form.get("class_name")
+        teacher = request.form.get("teacher")
+        time = request.form.get("time")
+        description = request.form.get("description")
+
+        # Tạo ID mới
+        new_id = max([c["id"] for c in classrooms], default=100) + 1
+
+        # Thêm lớp mới với trạng thái mặc định là pending
+        new_class = {
+            "id": new_id,
+            "name": class_name,
+            "teacher": teacher,
+            "time": time,
+            "description": description,
+            "subject": "general",  
+            "link": f"https://meet.jit.si/class{new_id}",
+            "status": "pending"   # mặc định chưa hoàn thành
+        }
+
+        classrooms.append(new_class)
+        save_classrooms(classrooms)  # Lưu lại JSON
+
+        return redirect(url_for("ai_education"))
+
+    return render_template(
+        "ai_education.html",
+        user=user,
+        classrooms=classrooms
+    )
+
+
+# Vào phòng học trực tiếp trên Jitsi
+@app.route("/class/<int:class_id>")
+def class_room(class_id):
+    classrooms = load_classrooms()
+    cls = next((c for c in classrooms if c["id"] == class_id), None)
+
+    if not cls:
+        return "Không tìm thấy lớp", 404
+
+    if cls.get("status") == "done":
+        return "<h2>Lớp học đã kết thúc ✅</h2>"
+
+    # Redirect sang link Jitsi (vd: https://meet.jit.si/class101)
+    return redirect(cls["link"])
+
+
+# Đánh dấu lớp hoàn thành
+@app.route("/class/<int:class_id>/complete", methods=["POST"])
+def complete_class(class_id):
+    classrooms = load_classrooms()
+    for c in classrooms:
+        if c["id"] == class_id:
+            c["status"] = "done"  # đổi trạng thái
+            break
+    save_classrooms(classrooms)
+    return redirect(url_for("ai_education"))
+# Xóa lớp học
+@app.route("/class/<int:class_id>/delete", methods=["POST"])
+def delete_class(class_id):
+    classrooms = load_classrooms()
+    classrooms = [c for c in classrooms if c["id"] != class_id]
+    save_classrooms(classrooms)
+    return redirect(url_for("ai_education"))
+
+#baigiang
+import uuid
+LECTURE_FILE = "data/lectures.json"
+UPLOAD_FOLDER = "uploads/lectures"
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+def load_lectures():
+    try:
+        with open(LECTURE_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
+
+
+def save_lectures(data):
+    with open(LECTURE_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+        
+@app.route("/lecture/view/<filename>")
+def view_lecture(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=False)
+
+@app.route("/lecture/upload", methods=["POST"])
+def upload_lecture():
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    title = request.form["title"]
+    file = request.files["file"]
+
+    if file:
+        # tạo tên file duy nhất
+        filename = f"{uuid.uuid4()}_{file.filename}" # type: ignore
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+        file.save(filepath)
+
+        lectures = load_lectures()
+        lectures.append({
+        "id": str(uuid.uuid4()),
+        "title": title,
+        "filename": filename,
+        "uploader": session.get("username"),
+        "uploaded_at": datetime.now().strftime("%Y-%m-%d %H:%M")  # ngày giờ upload
+    })
+
+        save_lectures(lectures)
+
+    return redirect(url_for("ai_education"))
+
+
+@app.route("/lecture/download/<filename>")
+def download_lecture(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True) # type: ignore
+
+# Sửa bài giảng
+@app.route("/lecture/edit/<lecture_id>", methods=["GET", "POST"])
+def edit_lecture(lecture_id):
+    if "username" not in session or session.get("role") != "teacher":
+        flash("⚠️ Chỉ giảng viên mới được sửa bài giảng", "danger")
+        return redirect(url_for("ai_education"))
+
+    lectures = load_lectures()
+    lecture = next((l for l in lectures if l["id"] == lecture_id), None)
+    if not lecture:
+        flash("❌ Bài giảng không tồn tại", "danger")
+        return redirect(url_for("ai_education"))
+
+    if request.method == "POST":
+        lecture["title"] = request.form.get("title", lecture["title"])
+        save_lectures(lectures)
+        flash("✏️ Đã cập nhật bài giảng!", "success")
+        return redirect(url_for("ai_education"))
+
+    return render_template("edit_lecture.html", lecture=lecture)
+
+
+# Xóa bài giảng
+@app.route("/lecture/delete/<lecture_id>", methods=["POST"])
+def delete_lecture(lecture_id):
+    if "username" not in session or session.get("role") != "teacher":
+        flash("⚠️ Chỉ giảng viên mới được xóa bài giảng", "danger")
+        return redirect(url_for("ai_education"))
+
+    lectures = load_lectures()
+    lectures = [l for l in lectures if l["id"] != lecture_id]
+    save_lectures(lectures)
+    flash("🗑️ Đã xóa bài giảng!", "info")
+    return redirect(url_for("ai_education"))
+
+#Link hoc tap
+LINKS_FILE = "data/links.json"
+
+def load_links():
+    try:
+        with open(LINKS_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except FileNotFoundError:
+        return []
+
+def save_links(data):
+    with open(LINKS_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+@app.route("/links/add", methods=["POST"])
+def add_link():
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    title = request.form["title"]
+    description = request.form.get("description", "")
+    url = request.form["url"]
+
+    links = load_links()
+    links.append({
+        "id": str(uuid.uuid4()),
+        "title": title,
+        "description": description,
+        "url": url,
+        "added_by": session.get("username")
+    })
+    save_links(links)
+    flash("✅ Thêm link học tập thành công!", "success")
+    return redirect(url_for("ai_education"))
+
+@app.route("/links/delete/<link_id>", methods=["POST"])
+def delete_link(link_id):
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    links = load_links()
+    links = [l for l in links if l["id"] != link_id]
+    save_links(links)
+    flash("🗑️ Đã xóa link.", "info")
+    return redirect(url_for("ai_education"))
+
+
 if __name__ == "__main__":
     app.run(debug=True) 
 # if __name__ == "__main__":
