@@ -115,12 +115,13 @@
 
   <!-- Nút thêm bài giảng -->
   <div class="text-end mb-2">
-    {% if session.get("username") %}
-    <button class="btn btn-success btn-sm" data-bs-toggle="collapse" data-bs-target="#addLectureForm">
-      <i class="bi bi-plus-circle"></i> Thêm Bài Giảng
-    </button>
+    {% if session.get("role") in ["admin", "teacher"] %}
+      <button class="btn btn-success btn-sm" data-bs-toggle="collapse" data-bs-target="#addLectureForm">
+        <i class="bi bi-plus-circle"></i> Thêm Bài Giảng
+      </button>
     {% endif %}
   </div>
+
 
   <!-- Form thêm bài giảng -->
   <div class="collapse mb-2" id="addLectureForm">
@@ -131,7 +132,6 @@
     </form>
   </div>
 
-  <!-- Danh sách bài giảng dạng bảng -->
 <!-- Danh sách bài giảng dạng bảng -->
 {% if lectures %}
 <table class="table table-striped table-bordered">
@@ -142,7 +142,7 @@
       <th>Ngày tải</th>
       <th>Xem</th>
       <th>Tải về</th>
-      {% if session.get('role') == 'teacher' %}
+      {% if session.get('role') in ['admin', 'teacher'] %}
       <th>Hành động</th>
       {% endif %}
     </tr>
@@ -166,7 +166,7 @@
           📥 Tải về
         </a>
       </td>
-      {% if session.get('role') == 'teacher' %}
+      {% if session.get('role') in ['admin', 'teacher'] %}
       <td class="d-flex gap-1">
         <!-- Nút sửa -->
         <a href="{{ url_for('edit_lecture', lecture_id=lec.id) }}" class="btn btn-warning btn-sm">✏️</a>
