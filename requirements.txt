@@ -5,3 +5,5 @@ gTTS
 pydub
 google-generativeai
 gunicorn
+opencv-python
+
