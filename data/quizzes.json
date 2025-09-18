@@ -1,0 +1,786 @@
+[
+  {
+    "id": 1,
+    "title": "Thử",
+    "duration": 10,
+    "num_questions": 5,
+    "questions": [
+      {
+        "question": "Hệ điều hành Android có logo là con gì?",
+        "options": {
+          "A": "Con robot xanh",
+          "B": "Con mèo",
+          "C": "Con chim",
+          "D": "Con ong"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Logo Google có bao nhiêu màu?",
+        "options": {
+          "A": "3",
+          "B": "4",
+          "C": "5",
+          "D": "6"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Hệ điều hành nào dưới đây là mã nguồn mở?",
+        "options": {
+          "A": "Windows",
+          "B": "macOS",
+          "C": "Linux",
+          "D": "iOS"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Trong hệ nhị phân, số 1011 bằng bao nhiêu trong hệ thập phân?",
+        "options": {
+          "A": "9",
+          "B": "10",
+          "C": "11",
+          "D": "12"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Trong mạng máy tính, từ viết tắt \"IP\" có nghĩa là gì?",
+        "options": {
+          "A": "Internet Provider",
+          "B": "Internal Protocol",
+          "C": "Internet Protocol",
+          "D": "Input Processing"
+        },
+        "answer": "C"
+      }
+    ],
+    "creator": "huan",
+    "created_at": "16-09-2025 14:49",
+    "type": "Trắc nghiệm AI",
+    "locked": false
+  },
+  {
+    "id": 2,
+    "title": "20 câu hỏi test",
+    "duration": 20,
+    "num_questions": 20,
+    "questions": [
+      {
+        "question": "Hệ điều hành Android có logo là con gì?",
+        "options": {
+          "A": "Con robot xanh",
+          "B": "Con mèo",
+          "C": "Con chim",
+          "D": "Con ong"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Logo Google có bao nhiêu màu?",
+        "options": {
+          "A": "3",
+          "B": "4",
+          "C": "5",
+          "D": "6"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Hệ điều hành nào dưới đây là mã nguồn mở?",
+        "options": {
+          "A": "Windows",
+          "B": "macOS",
+          "C": "Linux",
+          "D": "iOS"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Trong hệ nhị phân, số 1011 bằng bao nhiêu trong hệ thập phân?",
+        "options": {
+          "A": "9",
+          "B": "10",
+          "C": "11",
+          "D": "12"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Trong mạng máy tính, từ viết tắt \"IP\" có nghĩa là gì?",
+        "options": {
+          "A": "Internet Provider",
+          "B": "Internal Protocol",
+          "C": "Internet Protocol",
+          "D": "Input Processing"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Ngôn ngữ lập trình nào thường được sử dụng để phát triển ứng dụng Android?",
+        "options": {
+          "A": "Python",
+          "B": "Java",
+          "C": "C#",
+          "D": "Swift"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Trình duyệt web nào do Google phát triển?",
+        "options": {
+          "A": "Firefox",
+          "B": "Safari",
+          "C": "Chrome",
+          "D": "Opera"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "RAM là viết tắt của gì?",
+        "options": {
+          "A": "Read Access Memory",
+          "B": "Random Access Memory",
+          "C": "Run Active Module",
+          "D": "Ready Available Memory"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "CPU thường được gọi là gì trong máy tính?",
+        "options": {
+          "A": "Bộ não",
+          "B": "Trái tim",
+          "C": "Xương sống",
+          "D": "Con mắt"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Hệ điều hành nào thường được cài mặc định trên máy MacBook?",
+        "options": {
+          "A": "Windows",
+          "B": "Linux",
+          "C": "macOS",
+          "D": "Ubuntu"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Ký hiệu \"https://\" trong địa chỉ web biểu thị điều gì?",
+        "options": {
+          "A": "Trang web bảo mật",
+          "B": "Trang web không an toàn",
+          "C": "Trang web nội bộ",
+          "D": "Trang web ngoại tuyến"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Ổ đĩa SSD có ưu điểm gì so với HDD?",
+        "options": {
+          "A": "Rẻ hơn",
+          "B": "Nhanh hơn",
+          "C": "Ồn hơn",
+          "D": "Nặng hơn"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Trong Excel, hàm SUM dùng để làm gì?",
+        "options": {
+          "A": "Tính trung bình",
+          "B": "Tính tổng",
+          "C": "Tìm giá trị lớn nhất",
+          "D": "Tìm giá trị nhỏ nhất"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Dịch vụ lưu trữ đám mây nào do Microsoft cung cấp?",
+        "options": {
+          "A": "Google Drive",
+          "B": "Dropbox",
+          "C": "iCloud",
+          "D": "OneDrive"
+        },
+        "answer": "D"
+      },
+      {
+        "question": "IP v4 có bao nhiêu bit?",
+        "options": {
+          "A": "16",
+          "B": "32",
+          "C": "64",
+          "D": "128"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Trong lập trình web, HTML dùng để làm gì?",
+        "options": {
+          "A": "Tạo cấu trúc nội dung trang web",
+          "B": "Xử lý logic phía server",
+          "C": "Quản lý cơ sở dữ liệu",
+          "D": "Thiết kế đồ họa"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Shortcut \"Ctrl + C\" trong Windows dùng để làm gì?",
+        "options": {
+          "A": "Cắt",
+          "B": "Sao chép",
+          "C": "Dán",
+          "D": "Hoàn tác"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Phần mềm nào dưới đây là phần mềm chống virus?",
+        "options": {
+          "A": "Photoshop",
+          "B": "WinRAR",
+          "C": "Avast",
+          "D": "AutoCAD"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Bluetooth chủ yếu được sử dụng để làm gì?",
+        "options": {
+          "A": "Truyền dữ liệu không dây tầm ngắn",
+          "B": "Kết nối Internet",
+          "C": "Xem video trực tuyến",
+          "D": "Chơi game online"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Trong mạng máy tính, \"LAN\" viết tắt của gì?",
+        "options": {
+          "A": "Large Area Network",
+          "B": "Local Area Network",
+          "C": "Low Access Network",
+          "D": "Linked Application Node"
+        },
+        "answer": "B"
+      }
+    ],
+    "creator": "huan",
+    "created_at": "17-09-2025 15:56",
+    "type": "Trắc nghiệm AI"
+  },
+  {
+    "id": 3,
+    "title": "50 câu",
+    "duration": 50,
+    "num_questions": 50,
+    "questions": [
+      {
+        "question": "Hệ điều hành Android có logo là con gì?",
+        "options": {
+          "A": "Con robot xanh",
+          "B": "Con mèo",
+          "C": "Con chim",
+          "D": "Con ong"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Logo Google có bao nhiêu màu?",
+        "options": {
+          "A": "3",
+          "B": "4",
+          "C": "5",
+          "D": "6"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Hệ điều hành nào dưới đây là mã nguồn mở?",
+        "options": {
+          "A": "Windows",
+          "B": "macOS",
+          "C": "Linux",
+          "D": "iOS"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Trong hệ nhị phân, số 1011 bằng bao nhiêu trong hệ thập phân?",
+        "options": {
+          "A": "9",
+          "B": "10",
+          "C": "11",
+          "D": "12"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Trong mạng máy tính, từ viết tắt \"IP\" có nghĩa là gì?",
+        "options": {
+          "A": "Internet Provider",
+          "B": "Internal Protocol",
+          "C": "Internet Protocol",
+          "D": "Input Processing"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Ngôn ngữ lập trình nào thường được sử dụng để phát triển ứng dụng Android?",
+        "options": {
+          "A": "Python",
+          "B": "Java",
+          "C": "C#",
+          "D": "Swift"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Trình duyệt web nào do Google phát triển?",
+        "options": {
+          "A": "Firefox",
+          "B": "Safari",
+          "C": "Chrome",
+          "D": "Opera"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "RAM là viết tắt của gì?",
+        "options": {
+          "A": "Read Access Memory",
+          "B": "Random Access Memory",
+          "C": "Run Active Module",
+          "D": "Ready Available Memory"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "CPU thường được gọi là gì trong máy tính?",
+        "options": {
+          "A": "Bộ não",
+          "B": "Trái tim",
+          "C": "Xương sống",
+          "D": "Con mắt"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Hệ điều hành nào thường được cài mặc định trên MacBook?",
+        "options": {
+          "A": "Windows",
+          "B": "Linux",
+          "C": "macOS",
+          "D": "Ubuntu"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Ký hiệu \"https://\" trong địa chỉ web biểu thị điều gì?",
+        "options": {
+          "A": "Trang web bảo mật",
+          "B": "Trang web không an toàn",
+          "C": "Trang web nội bộ",
+          "D": "Trang web ngoại tuyến"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Ổ đĩa SSD có ưu điểm gì so với HDD?",
+        "options": {
+          "A": "Rẻ hơn",
+          "B": "Nhanh hơn",
+          "C": "Ồn hơn",
+          "D": "Nặng hơn"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Trong Excel, hàm SUM dùng để làm gì?",
+        "options": {
+          "A": "Tính trung bình",
+          "B": "Tính tổng",
+          "C": "Tìm giá trị lớn nhất",
+          "D": "Tìm giá trị nhỏ nhất"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Dịch vụ lưu trữ đám mây nào do Microsoft cung cấp?",
+        "options": {
+          "A": "Google Drive",
+          "B": "Dropbox",
+          "C": "iCloud",
+          "D": "OneDrive"
+        },
+        "answer": "D"
+      },
+      {
+        "question": "IPv4 có bao nhiêu bit?",
+        "options": {
+          "A": "16",
+          "B": "32",
+          "C": "64",
+          "D": "128"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Trong lập trình web, HTML dùng để làm gì?",
+        "options": {
+          "A": "Tạo cấu trúc nội dung trang web",
+          "B": "Xử lý logic phía server",
+          "C": "Quản lý cơ sở dữ liệu",
+          "D": "Thiết kế đồ họa"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Shortcut \"Ctrl + C\" trong Windows dùng để làm gì?",
+        "options": {
+          "A": "Cắt",
+          "B": "Sao chép",
+          "C": "Dán",
+          "D": "Hoàn tác"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Phần mềm nào dưới đây là phần mềm chống virus?",
+        "options": {
+          "A": "Photoshop",
+          "B": "WinRAR",
+          "C": "Avast",
+          "D": "AutoCAD"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Bluetooth chủ yếu được sử dụng để làm gì?",
+        "options": {
+          "A": "Truyền dữ liệu không dây tầm ngắn",
+          "B": "Kết nối Internet",
+          "C": "Xem video trực tuyến",
+          "D": "Chơi game online"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Trong mạng máy tính, \"LAN\" viết tắt của gì?",
+        "options": {
+          "A": "Large Area Network",
+          "B": "Local Area Network",
+          "C": "Low Access Network",
+          "D": "Linked Application Node"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Hệ điều hành nào thường dùng trong máy chủ web?",
+        "options": {
+          "A": "Linux",
+          "B": "Android",
+          "C": "iOS",
+          "D": "ChromeOS"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Google Drive miễn phí cho người dùng bao nhiêu GB lưu trữ?",
+        "options": {
+          "A": "5GB",
+          "B": "10GB",
+          "C": "15GB",
+          "D": "20GB"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Trong hệ nhị phân, số 1110 bằng bao nhiêu trong hệ thập phân?",
+        "options": {
+          "A": "12",
+          "B": "13",
+          "C": "14",
+          "D": "15"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Ký hiệu \".exe\" thường là loại file gì trong Windows?",
+        "options": {
+          "A": "Tệp nén",
+          "B": "Tệp hình ảnh",
+          "C": "Tệp thực thi",
+          "D": "Tệp văn bản"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Cổng USB được sử dụng để làm gì?",
+        "options": {
+          "A": "Truyền dữ liệu và cấp nguồn",
+          "B": "Kết nối Internet",
+          "C": "Xem phim",
+          "D": "In tài liệu"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Công cụ nào của Google dùng để họp trực tuyến?",
+        "options": {
+          "A": "Google Docs",
+          "B": "Google Meet",
+          "C": "Google Sheets",
+          "D": "Google Maps"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Trong PowerPoint, phím tắt \"F5\" có chức năng gì?",
+        "options": {
+          "A": "Tạo slide mới",
+          "B": "Chạy trình chiếu",
+          "C": "Sao chép slide",
+          "D": "Lưu file"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Trong mạng máy tính, \"DNS\" viết tắt của gì?",
+        "options": {
+          "A": "Domain Name System",
+          "B": "Data Network Service",
+          "C": "Digital Number Signal",
+          "D": "Direct Net Service"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Một byte bằng bao nhiêu bit?",
+        "options": {
+          "A": "2",
+          "B": "4",
+          "C": "8",
+          "D": "16"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Phần mềm Photoshop chủ yếu dùng để làm gì?",
+        "options": {
+          "A": "Chỉnh sửa ảnh",
+          "B": "Soạn thảo văn bản",
+          "C": "Quản lý file",
+          "D": "Tạo bảng tính"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Hệ điều hành nào thường dùng trên điện thoại iPhone?",
+        "options": {
+          "A": "Android",
+          "B": "iOS",
+          "C": "Windows Phone",
+          "D": "HarmonyOS"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Trong lập trình, vòng lặp \"for\" dùng để làm gì?",
+        "options": {
+          "A": "Lặp lại một khối lệnh nhiều lần",
+          "B": "Định nghĩa biến",
+          "C": "Kết thúc chương trình",
+          "D": "Nhập dữ liệu"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Shortcut \"Ctrl + Z\" dùng để làm gì?",
+        "options": {
+          "A": "Lưu",
+          "B": "Hoàn tác",
+          "C": "Sao chép",
+          "D": "Cắt"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Đơn vị đo tốc độ mạng thường dùng là gì?",
+        "options": {
+          "A": "KB",
+          "B": "MB",
+          "C": "Mbps",
+          "D": "GB"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Trong Windows, Recycle Bin dùng để làm gì?",
+        "options": {
+          "A": "Lưu tạm file đã xóa",
+          "B": "Sao lưu dữ liệu",
+          "C": "Lưu mật khẩu",
+          "D": "Chống virus"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Gmail do công ty nào phát triển?",
+        "options": {
+          "A": "Microsoft",
+          "B": "Apple",
+          "C": "Google",
+          "D": "IBM"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "CSDL viết tắt của gì?",
+        "options": {
+          "A": "Cơ Sở Dữ Liệu",
+          "B": "Cấu Số Đa Lượng",
+          "C": "Công Suất Dữ Liệu",
+          "D": "Cài Sẵn Dữ Liệu"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Trong Excel, hàm AVERAGE dùng để làm gì?",
+        "options": {
+          "A": "Tính tổng",
+          "B": "Tính trung bình",
+          "C": "Lấy giá trị nhỏ nhất",
+          "D": "Lấy giá trị lớn nhất"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Trong Word, Ctrl + B dùng để làm gì?",
+        "options": {
+          "A": "In nghiêng",
+          "B": "In đậm",
+          "C": "Gạch chân",
+          "D": "Xóa chữ"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Facebook được sáng lập bởi ai?",
+        "options": {
+          "A": "Bill Gates",
+          "B": "Mark Zuckerberg",
+          "C": "Elon Musk",
+          "D": "Steve Jobs"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Trong Windows, Task Manager dùng để làm gì?",
+        "options": {
+          "A": "Quản lý tác vụ và tiến trình",
+          "B": "Lưu file",
+          "C": "Diệt virus",
+          "D": "Cài đặt phần mềm"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Ký hiệu \".jpg\" thường là loại file gì?",
+        "options": {
+          "A": "Video",
+          "B": "Ảnh",
+          "C": "Âm thanh",
+          "D": "Văn bản"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Trong mạng, Wi-Fi dùng công nghệ gì?",
+        "options": {
+          "A": "Sóng radio",
+          "B": "Tia hồng ngoại",
+          "C": "Dây cáp quang",
+          "D": "Bluetooth"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Trong lập trình, IDE là gì?",
+        "options": {
+          "A": "Internet Development Engine",
+          "B": "Integrated Development Environment",
+          "C": "Internal Data Exchange",
+          "D": "Input Data Engine"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Shortcut Ctrl + S trong Windows có chức năng gì?",
+        "options": {
+          "A": "Mở file",
+          "B": "Lưu file",
+          "C": "Đóng file",
+          "D": "Xóa file"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Trong mạng máy tính, VPN là viết tắt của?",
+        "options": {
+          "A": "Virtual Private Network",
+          "B": "Visual Protocol Node",
+          "C": "Video Protocol Net",
+          "D": "Variable Private Number"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Ổ đĩa C trong Windows thường chứa gì?",
+        "options": {
+          "A": "Phim",
+          "B": "Hệ điều hành",
+          "C": "Bài hát",
+          "D": "Hình ảnh"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Trong HTML, thẻ <img> dùng để làm gì?",
+        "options": {
+          "A": "Hiển thị văn bản",
+          "B": "Hiển thị ảnh",
+          "C": "Tạo liên kết",
+          "D": "Tạo bảng"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Tổ hợp Ctrl + Alt + Del dùng để làm gì trong Windows?",
+        "options": {
+          "A": "Mở Task Manager",
+          "B": "Khởi động lại máy",
+          "C": "Xóa file",
+          "D": "Mở Notepad"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Trong công nghệ thông tin, AI viết tắt của?",
+        "options": {
+          "A": "Artificial Intelligence",
+          "B": "Automatic Input",
+          "C": "Advanced Internet",
+          "D": "Application Integration"
+        },
+        "answer": "A"
+      }
+    ],
+    "creator": "huan",
+    "created_at": "18-09-2025 14:54",
+    "type": "Trắc nghiệm AI"
+  }
+]

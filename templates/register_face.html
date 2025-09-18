@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Đăng ký học</title>
+</head>
+<body>
+  <h3>📷 Đăng ký học cho lớp {{ class_id }}</h3>
+
+  <form method="POST" id="registerForm">
+    <label>Họ tên sinh viên:</label>
+    <input type="text" name="student_name" required><br><br>
+
+    <!-- Video từ webcam -->
+    <video id="video" width="320" height="240" autoplay></video><br>
+    <canvas id="canvas" width="320" height="240" style="display:none;"></canvas>
+    
+    <input type="hidden" name="captured_image" id="captured_image">
+
+    <button type="button" onclick="capture()">📸 Chụp ảnh</button>
+    <button type="submit">✅ Hoàn thành</button>
+  </form>
+
+  <script>
+    // Mở webcam
+    const video = document.getElementById('video');
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => { video.srcObject = stream; })
+      .catch(err => { console.error("Không mở được webcam: ", err); });
+
+    // Hàm chụp ảnh
+    function capture() {
+      const canvas = document.getElementById('canvas');
+      const context = canvas.getContext('2d');
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL("image/png");
+      document.getElementById("captured_image").value = dataUrl;
+      alert("✅ Đã chụp ảnh thành công!");
+    }
+  </script>
+</body>
+</html>

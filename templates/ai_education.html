@@ -69,46 +69,72 @@
           <button type="submit" class="btn btn-primary btn-sm">Tạo Lớp</button>
         </form>
       </div>
-
+      
       <!-- Danh sách lớp học -->
-      {% for cls in classrooms %}
-      <div class="card d-flex flex-row align-items-center justify-content-between mb-2">
-        <div class="card-body">
-          <strong>{{ cls.name }}</strong><br>
-          Giáo viên: {{ cls.teacher }}<br>
-          Thời gian: {{ cls.time }}<br>
-          Mô tả: {{ cls.description }}<br><br>
+    {% for cls in classrooms %}
+    <div class="card d-flex flex-row align-items-center justify-content-between mb-2">
+      <div class="card-body">
+        <strong>{{ cls.name }}</strong><br>
+        Giáo viên: {{ cls.teacher }}<br>
+        Thời gian: {{ cls.time }}<br>
+        Mô tả: {{ cls.description }}<br><br>
 
-          {% if cls.status == "done" %}
-            <span class="badge bg-success">Đã hoàn thành ✅</span>
-          {% else %}
-            <a href="/class/{{ cls.id }}" class="btn btn-primary btn-sm">
-              <i class="bi bi-door-open"></i> Vào Phòng Học
-            </a>
-          {% endif %}
-        </div>
+        {% if cls.status == "done" %}
+          <span class="badge bg-success">Đã hoàn thành ✅</span>
+        {% else %}
+          <a href="/class/{{ cls.id }}" class="btn btn-primary btn-sm">
+            <i class="bi bi-door-open"></i> Vào Phòng Học
+          </a>
 
-        <!-- Cột bên phải chứa nút -->
-        <div class="p-3 d-flex flex-column gap-2">
-          {% if cls.status != "done" %}
-            <!-- Nút hoàn thành -->
-            <form method="POST" action="/class/{{ cls.id }}/complete">
-              <button type="submit" class="btn btn-outline-success btn-sm" title="Đánh dấu hoàn thành">
-                <i class="bi bi-check-lg"></i>
-              </button>
-            </form>
-          {% else %}
-            <!-- Nút xóa khi đã hoàn thành -->
-            <form method="POST" action="/class/{{ cls.id }}/delete" 
-                  onsubmit="return confirm('Bạn có chắc muốn xóa lớp này không?');">
-              <button type="submit" class="btn btn-outline-danger btn-sm" title="Xóa lớp">
-                <i class="bi bi-trash"></i>
+          {% if session.get('role') == "student" %}
+            <!-- Nút đăng ký học -->
+            <form method="POST" action="/class/{{ cls.id }}/register" class="d-inline">
+              <button type="submit" class="btn btn-warning btn-sm">
+                <i class="bi bi-pencil-square"></i> Đăng ký học
               </button>
             </form>
           {% endif %}
-        </div>
+        {% endif %}
       </div>
-      {% endfor %}
+
+        {% if session.get('role') in ['admin','teacher'] %}
+        <div class="px-3 pb-2 text-muted small d-flex align-items-center gap-2">
+          <h6 class="mb-0 fw-semibold" style="font-size: 0.9rem;">
+            📋 Danh sách đăng ký học
+          </h6>
+          <a href="{{ url_for('view_registers') }}" 
+            class="btn btn-outline-info btn-sm ms-2">
+            Xem chi tiết
+          </a>
+        </div>
+      {% endif %}
+
+
+      <!-- Cột bên phải chứa nút -->
+      <div class="p-3 d-flex flex-column gap-2">
+        {% if cls.status != "done" %}
+          <!-- Nút hoàn thành -->
+          {% if session.get('role') in ["admin", "teacher"] %}
+          <form method="POST" action="/class/{{ cls.id }}/complete">
+            <button type="submit" class="btn btn-outline-success btn-sm" title="Đánh dấu hoàn thành">
+              <i class="bi bi-check-lg"></i>
+            </button>
+          </form>
+          {% endif %}
+        {% else %}
+          <!-- Nút xóa khi đã hoàn thành -->
+          {% if session.get('role') in ["admin", "teacher"] %}
+          <form method="POST" action="/class/{{ cls.id }}/delete" 
+                onsubmit="return confirm('Bạn có chắc muốn xóa lớp này không?');">
+            <button type="submit" class="btn btn-outline-danger btn-sm" title="Xóa lớp">
+              <i class="bi bi-trash"></i>
+            </button>
+          </form>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
 </div>
  <!-- Bài Giảng -->
 <div class="tab-pane fade" id="lecture">
@@ -124,13 +150,18 @@
 
 
   <!-- Form thêm bài giảng -->
-  <div class="collapse mb-2" id="addLectureForm">
-    <form method="POST" action="{{ url_for('upload_lecture') }}" enctype="multipart/form-data">
-      <input type="text" name="title" placeholder="Tiêu đề bài giảng" class="form-control mb-2" required>
-      <input type="file" name="file" class="form-control mb-2" accept=".pdf,.doc,.ppt,.pptx,.zip" required>
-      <button type="submit" class="btn btn-primary btn-sm">📤 Upload</button>
-    </form>
-  </div>
+    <div class="collapse mb-2" id="addLectureForm">
+      <form method="POST" action="{{ url_for('upload_lecture') }}" enctype="multipart/form-data">
+        <input type="text" name="title" placeholder="Tiêu đề bài giảng" class="form-control mb-2" required>
+
+        <!-- Cho phép PDF, Word, PowerPoint, ZIP, hình (jpg, png, gif) và video (mp4, webm, mov) -->
+        <input type="file" name="file" class="form-control mb-2" 
+              accept=".pdf,.doc,.docx,.ppt,.pptx,.zip,.jpg,.jpeg,.png,.gif,.mp4,.webm,.mov" required>
+
+        <button type="submit" class="btn btn-primary btn-sm">📤 Upload</button>
+      </form>
+    </div>
+
 
 <!-- Danh sách bài giảng dạng bảng -->
 {% if lectures %}
@@ -184,21 +215,149 @@
 {% else %}
 <p class="text-muted m-0">Chưa có bài giảng nào được tải lên.</p>
 {% endif %}
-
-
 </div>
 
-    <!-- Kiểm Tra -->
-    <div class="tab-pane fade" id="quiz">
-      <div class="card">
-        <div class="card-header">Kiểm Tra 1</div>
-        <div class="card-body">
-          Số câu hỏi: 10<br>
-          Thời gian: 30 phút<br>
-          <button class="btn btn-primary btn-sm mt-2">📝 Bắt đầu</button>
+<!-- Kiểm Tra -->
+<div class="tab-pane fade" id="quiz">
+  <div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center bg-light">
+      <span class="fw-bold">📘 Quản lý bài kiểm tra</span>
+      {% if session.get('role') in ["teacher","admin"] %}
+      <div>
+        <button class="btn btn-success btn-sm me-1" data-bs-toggle="modal" data-bs-target="#autoQuizModal">
+          🤖 Tạo trắc nghiệm tự động (AI)
+        </button>
+        <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#essayQuizModal">
+          ✍️ Tạo bài kiểm tra tự luận
+        </button>
+      </div>
+      {% endif %}
+    </div>
+    <div class="card-body">
+      {% if quizzes %}
+        <div class="d-flex flex-column gap-3">
+          {% for quiz in quizzes %}
+          <div class="border rounded p-3 bg-white shadow-sm">
+            <div class="d-flex justify-content-between align-items-start flex-wrap">
+              <!-- Thông tin bài kiểm tra -->
+              <div class="me-3">
+                <h6 class="fw-bold mb-1">{{ quiz.title }}</h6>
+                <small class="text-muted">
+                  Người tạo: {{ quiz.creator }} | 
+                  Loại: {{ quiz.type }} | 
+                  Ngày tạo: {{ quiz.created_at }}
+                </small><br>
+                <small class="text-muted">
+                  Thời gian: {{ quiz.duration }} phút | 
+                  Số câu: {{ quiz.num_questions }}
+                </small>
+               <div class="mt-2">
+                {% if not session.get('username') %}
+                  <!-- Chưa đăng nhập -->
+                  <button class="btn btn-outline-secondary btn-sm" disabled title="Vui lòng đăng nhập để làm bài">
+                    🔑 Đăng nhập để làm
+                  </button>
+
+                {% elif quiz.has_done %}
+                  <!-- Đã làm -->
+                  <span class="badge bg-success">✅ Đã làm</span>
+
+                {% else %}
+                  <!-- Đã đăng nhập & chưa làm -->
+                  <a href="{% if not quiz.locked %}{{ url_for('start_quiz', quiz_id=quiz.id) }}{% else %}#{% endif %}"
+                    class="btn btn-primary btn-sm {% if quiz.locked %}disabled{% endif %}" 
+                    {% if quiz.locked %}title="Bài kiểm tra đã bị khóa"{% endif %}>
+                    📝 Bắt đầu
+                  </a>
+                {% endif %}
+              </div>
+
+              </div>
+
+              <!-- Các nút quản lý -->
+              <div class="d-flex flex-column gap-2 align-items-end">
+                <a href="{{ url_for('quiz_results_list', quiz_id=quiz.id) }}" 
+                   class="btn btn-info btn-sm w-100">
+                  📋 Xem kết quả
+                </a>
+                {% if quiz.locked %}
+                  <button class="btn btn-secondary btn-sm w-100" disabled>🔒 Đã khóa</button>
+                {% else %}
+                  <form method="POST" action="{{ url_for('lock_quiz', quiz_id=quiz.id) }}">
+                    <button type="submit" class="btn btn-warning btn-sm w-100">
+                      🔒 Khóa bài kiểm tra
+                    </button>
+                  </form>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted">Chưa có bài kiểm tra nào</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Tạo trắc nghiệm tự động (AI) -->
+<div class="modal fade" id="autoQuizModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="POST" action="{{ url_for('create_auto_quiz') }}" enctype="multipart/form-data" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">🤖 Tạo bài kiểm tra trắc nghiệm tự động</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2">
+          <label>Tiêu đề</label>
+          <input type="text" name="title" class="form-control" required>
+        </div>
+        <div class="mb-2">
+          <label>Thời gian (phút)</label>
+          <input type="number" name="duration" class="form-control" required>
+        </div>
+        <div class="mb-2">
+          <label>Tải file Word (chứa câu hỏi & đáp án)</label>
+          <input type="file" name="file" accept=".doc,.docx" class="form-control" required>
         </div>
       </div>
-    </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-success">Tạo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Tạo bài kiểm tra tự luận -->
+<div class="modal fade" id="essayQuizModal" tabindex="-1">
+  <div class="modal-dialog">
+    <form method="POST" action="{{ url_for('create_essay_quiz') }}" class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">✍️ Tạo bài kiểm tra tự luận</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2">
+          <label>Tiêu đề</label>
+          <input type="text" name="title" class="form-control" required>
+        </div>
+        <div class="mb-2">
+          <label>Thời gian (phút)</label>
+          <input type="number" name="duration" class="form-control" required>
+        </div>
+        <div class="mb-2">
+          <label>Đề bài</label>
+          <textarea name="content" class="form-control" rows="4" required></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-secondary">Tạo</button>
+      </div>
+    </form>
+  </div>
+</div>
 
     <!-- Tab Link Học Tập -->
 <div class="tab-pane fade" id="links">

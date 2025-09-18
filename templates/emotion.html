@@ -38,11 +38,12 @@
   </form>
 
   {% if emotion_response %}
-  <div class="alert alert-warning mt-4">
-    🧠 <strong>AI đánh giá:</strong><br>
-    {{ emotion_response }}
-  </div>
-  {% endif %}
+<div class="alert alert-warning mt-4" style="white-space: pre-line;">
+  🧠 <strong>AI đánh giá:</strong><br>
+  {{ emotion_response }}
+</div>
+{% endif %}
+
 
   <a href="/" class="btn btn-outline-secondary mt-3">&larr; Quay lại trang chủ</a>
 </div>

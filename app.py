@@ -7,9 +7,11 @@ from pydub.utils import which  # type: ignore
 import os
 import google.generativeai as genai  # type: ignore
 import json
+import base64
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash # type: ignore
-
+import cv2,  uuid # type: ignore
+from docx import Document # type: ignore
 
 # Cài đặt
 AudioSegment.converter = which("ffmpeg")
@@ -271,14 +273,19 @@ def ai_tutor():
             try:
                 model = genai.GenerativeModel("gemini-1.5-flash")
                 chat = model.start_chat(history=[])
-                response = chat.send_message(question)
+                response = chat.send_message(f"{question}\n\nHãy trả lời hoàn toàn bằng tiếng Việt.")
                 answer = response.text
+
+                # Gộp nhiều dòng trống liên tiếp thành 1 dòng trống
+                answer = re.sub(r'\n\s*\n+', '\n', answer.strip())
+
             except Exception as e:
                 answer = f"Lỗi kết nối Gemini: {e}"
 
     return render_template("ai_tutor.html", question=question, answer=answer)
-
 # AI CẢM XÚC
+import re
+
 @app.route("/emotion", methods=["GET", "POST"])
 def emotion():
     emotion_text = ""
@@ -290,13 +297,20 @@ def emotion():
             try:
                 model = genai.GenerativeModel("gemini-1.5-flash")
                 response = model.generate_content(
-                    f"Phân tích cảm xúc sau đoạn văn sau và đưa ra gợi ý cải thiện tinh thần:\"{emotion_text}\"."
+                    f"Người dùng viết: \"{emotion_text}\".\n\n"
+                    "Hãy phân tích cảm xúc này và đưa ra gợi ý cải thiện tinh thần. "
+                    "Trả lời hoàn toàn bằng tiếng Việt, trình bày rõ ràng, chia ý theo từng đoạn."
                 )
+                # Lấy text
                 emotion_response = response.text
+                # Gộp nhiều dòng trống liên tiếp thành 1
+                emotion_response = re.sub(r'\n\s*\n+', '\n', emotion_response.strip())
             except Exception as e:
                 emotion_response = f"Lỗi kết nối Gemini: {e}"
 
-    return render_template("emotion.html", emotion_text=emotion_text, emotion_response=emotion_response)
+    return render_template("emotion.html",
+                           emotion_text=emotion_text,
+                           emotion_response=emotion_response)
 
 # QUẢN LÝ THỜI GIAN – GIAI ĐOẠN 1: Lập lịch
 import os
@@ -487,12 +501,21 @@ def ai_education():
     classrooms = load_classrooms()
     lectures = load_lectures()
     links = load_links()   # ← load link học tập từ JSON
+    quizzes = load_quizzes()     
+    all_results = load_quiz_results()  # list dict kết quả
+    username = session.get("username")
+
+    # thêm flag để template check
+    for q in quizzes:
+        q["has_done"] = any(r["quiz_id"] == q["id"] and r["user"] == username for r in all_results)
+
 
     return render_template("ai_education.html", 
                            user=user, 
                            classrooms=classrooms,
                            lectures=lectures,
-                           links=links)   # ← truyền links vào template
+                           links=links,  # ← truyền links vào template
+                            quizzes=quizzes)
 
 
     # Nếu form Thêm Lớp được submit
@@ -697,7 +720,337 @@ def delete_link(link_id):
     flash("🗑️ Đã xóa link.", "info")
     return redirect(url_for("ai_education"))
 
+REGISTER_FILE = "data/registers.json"
 
+def load_registers():
+    if os.path.exists(REGISTER_FILE):
+        with open(REGISTER_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_registers(data):
+    with open(REGISTER_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+@app.route("/class/<class_id>/register", methods=["GET", "POST"])
+def register_class(class_id):
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        student_name = request.form.get("student_name")
+        img_data = request.form.get("captured_image")
+
+        if not student_name or not img_data:
+            flash("❌ Vui lòng nhập tên và chụp ảnh khuôn mặt.", "danger")
+            return redirect(url_for("register_class", class_id=class_id))
+
+        # Giải mã ảnh base64
+        img_data = img_data.split(",")[1]  # bỏ phần 'data:image/png;base64,...'
+        img_bytes = base64.b64decode(img_data)
+
+        face_dir = os.path.join("static", "faces")
+        os.makedirs(face_dir, exist_ok=True)
+        filename = f"{student_name}_{uuid.uuid4().hex}.png"
+        filepath = os.path.join(face_dir, filename)
+
+        with open(filepath, "wb") as f:
+            f.write(img_bytes)
+
+        # Lưu thông tin đăng ký
+        registers = load_registers()
+        registers.append({
+            "student": student_name,
+            "class_id": class_id,
+            "class_name": f"Lớp {class_id}",
+            "face_image": f"faces/{filename}"
+        })
+        save_registers(registers)
+
+        flash("🎉 Đăng ký học thành công!", "success")
+        return redirect(url_for("view_registers"))
+
+    return render_template("register_face.html", class_id=class_id)
+
+@app.route("/class/registers")
+def view_registers():
+    if "username" not in session:
+        return redirect(url_for("login"))
+
+    if session.get("role") not in ["admin", "teacher"]:
+        flash("⛔ Bạn không có quyền xem danh sách đăng ký.", "danger")
+        return redirect(url_for("ai_education"))
+
+    registers = load_registers()
+    return render_template("register_list.html", registers=registers)
+
+# KIEM TRA
+QUIZ_FILE = "data/quizzes.json"
+
+# ========== UTILS ==========
+def load_quizzes():
+    if os.path.exists(QUIZ_FILE):
+        with open(QUIZ_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_quizzes(quizzes):
+    os.makedirs("data", exist_ok=True)
+    with open(QUIZ_FILE, "w", encoding="utf-8") as f:
+        json.dump(quizzes, f, ensure_ascii=False, indent=2)
+
+def extract_text_from_docx(filepath):
+    doc = Document(filepath)
+    paragraphs = [p.text.strip() for p in doc.paragraphs if p.text.strip()]
+    return "\n".join(paragraphs)
+
+def count_questions_in_text(text):
+    import re
+    matches = re.findall(r"Câu\s*\d+[:.]", text, flags=re.IGNORECASE)
+    return len(matches) if matches else None
+
+# ========== AI GENERATE ==========
+def ai_generate_questions(text, num_questions=None):
+    prompt = f"""
+Bạn là một trợ lý giáo dục. 
+Từ đoạn văn bản sau, hãy tạo {num_questions} câu hỏi trắc nghiệm, 
+mỗi câu có 4 phương án (A, B, C, D) và một đáp án đúng.
+
+Trả về JSON array, mỗi phần tử:
+{{
+  "question": "...?",
+  "options": {{"A": "...", "B": "...", "C": "...", "D": "..."}},
+  "answer": "A"
+}}
+
+Đoạn văn bản:
+\"\"\" 
+{text}
+\"\"\"
+    """
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    response = model.generate_content(prompt)
+    content = response.text.strip()
+
+    # --- xử lý JSON ---
+    import re, json
+    try:
+        # Lấy phần JSON thuần từ text
+        match = re.search(r"\[.*\]", content, re.DOTALL)
+        if match:
+            content = match.group(0)
+        questions = json.loads(content)
+
+        clean = []
+        for q in questions:
+            if "question" in q and "options" in q and "answer" in q:
+                clean.append(q)
+        return clean
+    except Exception as e:
+        print("⚠️ Lỗi parse JSON:", e, "\nContent:\n", content)
+        return []
+
+# ========== ROUTES ==========
+
+@app.route("/quiz/auto", methods=["POST"])
+def create_auto_quiz():
+    quizzes = load_quizzes()
+
+    title = request.form["title"]
+    duration = int(request.form["duration"])
+    file = request.files["file"]
+
+    if not file:
+        return "Chưa upload file Word", 400
+
+    filepath = os.path.join("uploads", file.filename)
+    os.makedirs("uploads", exist_ok=True)
+    file.save(filepath)
+
+    # Trích text và gọi AI
+    text = extract_text_from_docx(filepath)
+    questions = ai_generate_questions(text)
+    if not questions:
+        flash("❌ AI không tạo được câu hỏi, kiểm tra lại file Word!", "danger")
+        return redirect(url_for("ai_education"))
+
+
+    new_quiz = {
+        "id": len(quizzes) + 1,
+        "title": title,
+        "duration": duration,
+        "num_questions": len(questions),
+        "questions": questions,
+        "creator": session.get("username", "Giáo viên"),
+        "created_at": datetime.now().strftime("%d-%m-%Y %H:%M"),
+        "type": "Trắc nghiệm AI"
+    }
+
+
+    quizzes.append(new_quiz)
+    save_quizzes(quizzes)
+
+    return redirect(url_for("ai_education"))
+
+
+@app.route("/quiz/essay", methods=["POST"])
+def create_essay_quiz():
+    quizzes = load_quizzes()
+
+    title = request.form["title"]
+    duration = int(request.form["duration"])
+    content = request.form["content"]
+
+    new_quiz = {
+        "id": len(quizzes) + 1,
+        "title": title,
+        "duration": duration,
+        "num_questions": 1,
+        "questions": [
+            {
+                "question": content,
+                "options": {},
+                "answer": None
+            }
+        ],
+        "creator": session.get("username", "Giáo viên"),
+        "created_at": datetime.now().strftime("%d-%m-%Y %H:%M"),
+        "type": "Tự luận"
+    }
+
+    quizzes.append(new_quiz)
+    save_quizzes(quizzes)
+
+    return redirect(url_for("ai_education"))
+
+# Khi vào trang làm quiz
+@app.route("/quiz/<int:quiz_id>")
+def start_quiz(quiz_id):
+    quizzes = load_quizzes()
+    quiz = next((q for q in quizzes if q["id"] == quiz_id), None)
+    if not quiz:
+        flash("❌ Không tìm thấy bài kiểm tra.", "danger")
+        return redirect(url_for("ai_education"))
+    if quiz.get("locked"):
+        flash("⚠️ Bài kiểm tra này đã bị khóa. Bạn không thể làm bài.", "warning")
+        return redirect(url_for("ai_education"))
+    username = session.get("username")
+    all_results = load_quiz_results()
+
+    # ✅ Ràng buộc: nếu user đã làm quiz này → redirect sang danh sách kết quả
+    if any(r["quiz_id"] == quiz_id and r["user"] == username for r in all_results):
+        flash("⚠️ Bạn chỉ được làm bài kiểm tra này 1 lần.", "warning")
+        return redirect(url_for("quiz_results_list", quiz_id=quiz_id))
+
+    # Lưu thời gian bắt đầu vào session
+    session['start_time'] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    return render_template("quiz_start.html", quiz=quiz)
+
+
+RESULTS_FILE = "data/quiz_results.json"
+
+@app.route("/quiz/<int:quiz_id>/submit", methods=["POST"])
+def submit_quiz(quiz_id):
+    username = session.get("username", "Unknown")
+    quizzes = load_quizzes()  # load quiz từ JSON hoặc nguồn khác
+    quiz = next((q for q in quizzes if q["id"] == quiz_id), None)
+    if not quiz:
+        flash("❌ Không tìm thấy bài kiểm tra.", "danger")
+        return redirect(url_for("ai_education"))
+
+    # ===== Tính thời gian làm bài =====
+    start_time = session.get("start_time")
+    end_time = datetime.now()
+    time_used = 0
+    if start_time:
+        start_time = datetime.strptime(start_time, "%Y-%m-%d %H:%M:%S")
+        time_used = (end_time - start_time).seconds // 60
+
+    # ===== Chấm điểm =====
+    user_answers = {}
+    score = 0
+    questions = quiz["questions"]
+    for idx, q in enumerate(questions):
+        ans = request.form.get(f"q{idx}")
+        user_answers[idx] = ans
+        if quiz.get("type") == "Trắc nghiệm AI" and ans == q.get("answer"):
+            score += 1
+
+    # ===== Tạo dict kết quả =====
+    result = {
+        "quiz_id": quiz_id,
+        "user": username,
+        "title": quiz.get("title"),
+        "total": len(questions),
+        "score": score if quiz.get("type") == "Trắc nghiệm AI" else None,
+        "answers": user_answers,
+        "time_used": time_used,
+        "submitted_at": end_time.strftime("%Y-%m-%d %H:%M:%S")
+    }
+
+    # ===== Lưu vào JSON =====
+    save_quiz_result(result)
+
+    return render_template("quiz_result.html", result=result, quiz=quiz)
+
+# ===== Hàm load JSON =====
+def load_quiz_results():
+    try:
+        with open(RESULTS_FILE, "r", encoding="utf-8") as f:
+            results = json.load(f)
+            if isinstance(results, list):
+                return results
+            return []
+    except FileNotFoundError:
+        return []
+
+# ===== Hàm save JSON =====
+def save_quiz_result(result):
+    results = load_quiz_results()
+    # chỉ lưu nếu user chưa làm quiz này
+    if not any(r["quiz_id"] == result["quiz_id"] and r["user"] == result["user"] for r in results):
+        results.append(result)
+        with open(RESULTS_FILE, "w", encoding="utf-8") as f:
+            json.dump(results, f, ensure_ascii=False, indent=2)
+
+
+@app.route("/quiz/<int:quiz_id>/results")
+def quiz_results_list(quiz_id):
+    quizzes = load_quizzes()
+    quiz = next((q for q in quizzes if q["id"] == quiz_id), None)
+    if not quiz:
+        flash("❌ Không tìm thấy bài kiểm tra.", "danger")
+        return redirect(url_for("ai_education"))
+
+    # đọc tất cả kết quả từ file JSON
+    all_results = load_quiz_results()  # trả về list
+    # lọc theo quiz_id
+    results = [r for r in all_results if r["quiz_id"] == quiz_id]
+
+    return render_template("quiz_results_list.html", quiz=quiz, results=results)
+
+@app.route("/quiz/<int:quiz_id>/lock", methods=["POST"])
+def lock_quiz(quiz_id):
+    quizzes = load_quizzes()
+    quiz = next((q for q in quizzes if q["id"] == quiz_id), None)
+    if not quiz:
+        flash("❌ Không tìm thấy bài kiểm tra.", "danger")
+        return redirect(url_for("ai_education"))
+
+    # Chỉ cho teacher hoặc admin khóa
+    if session.get("role") not in ["teacher", "admin"]:
+        flash("⚠️ Bạn không có quyền thực hiện thao tác này.", "warning")
+        return redirect(url_for("ai_education"))
+
+    quiz["locked"] = True
+    save_quizzes(quizzes)  # Hàm ghi lại JSON
+
+    flash(f"🔒 Bài kiểm tra '{quiz['title']}' đã bị khóa.", "success")
+    return redirect(url_for("ai_education"))
+
+
+########
 if __name__ == "__main__":
     app.run(debug=True) 
 # if __name__ == "__main__":

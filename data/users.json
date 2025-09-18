@@ -18,5 +18,10 @@
         "password": "scrypt:32768:8:1$fUgS7iudW4KIoivM$6a0b611cf370331446beb3de958181e128a455efdc836cf3400252e16e5d35b5bf3cabc2b2fe65b7f6319deea5d4c16c38e81c98de452881eb74941dd90d188f",
         "role": "student",
         "approved": true
+    },
+    "ngọc hân": {
+        "password": "scrypt:32768:8:1$fb1EmgucRa4JUWby$3ab4ce4e26e26e9e58a7c40e196085f4a4410286d939726ef8104dd2a688b20d6dbd1299d8d70f57c64dcf2fa9d8cd92bc15b7a690bb783fc6e043c06dd42a72",
+        "role": "student",
+        "approved": true
     }
 }
