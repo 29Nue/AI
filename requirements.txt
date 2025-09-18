@@ -6,4 +6,5 @@ pydub
 google-generativeai
 gunicorn
 opencv-python
+python-docx
 
