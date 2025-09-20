@@ -35,6 +35,7 @@
         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#bmi">BMI</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#age">Tính tuổi</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#unit">Đổi đơn vị</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#binary">Nhị phân</a></li>
     </ul>
 
     <div class="tab-content mt-3">
@@ -184,11 +185,29 @@
                 <p class="mt-2 fw-bold text-success" id="unitTemp"></p>
             </div>
         </div>
-
     </div>
 </div>
+ <!-- Nhị phân -->
+        <div class="tab-pane fade" id="binary">
+            <div class="mb-3">
+                <input type="text" id="binInput" class="form-control" placeholder="Nhập số nhị phân (ví dụ: 1011)">
+                <button class="btn btn-primary mt-2" onclick="binToDec()">→ Thập phân</button>
+                <p class="fw-bold mt-2 text-success" id="binToDecResult"></p>
+            </div>
 
-<a href="/" class="btn btn-outline-secondary mt-3">&larr; Quay lại trang chủ</a>
+            <div class="mb-3">
+                <input type="number" id="decInput" class="form-control" placeholder="Nhập số thập phân (ví dụ: 13)">
+                <button class="btn btn-primary mt-2" onclick="decToBin()">→ Nhị phân</button>
+                <p class="fw-bold mt-2 text-success" id="decToBinResult"></p>
+            </div>
+
+            <div class="mb-3">
+                <input type="text" id="binExpr" class="form-control" placeholder="Nhập biểu thức nhị phân(+,-,*,/).(ví dụ: 101+11)">
+                <button class="btn btn-warning mt-2" onclick="calcBinary()">Tính toán</button>
+                <p class="fw-bold mt-2 text-success" id="binCalcResult"></p>
+            </div>
+        </div>
+        <a href="/" class="btn btn-outline-secondary mt-3">&larr; Quay lại trang chủ</a>
     </div>
 </div>
 
@@ -292,6 +311,53 @@
         if (isNaN(c)) return alert('Nhập nhiệt độ');
         document.getElementById('unitTemp').innerText = `${c}°C = ${(c+273.15).toFixed(2)} K`;
     }
-</script>
+
+    // Chuyển nhị phân sang thập phân
+    function binToDec() {
+        let bin = document.getElementById("binInput").value;
+        if (!/^[01]+$/.test(bin)) return alert("Vui lòng nhập số nhị phân hợp lệ");
+        document.getElementById("binToDecResult").innerText = `${bin} (2) = ${parseInt(bin, 2)} (10)`;
+    }
+
+    // Chuyển thập phân sang nhị phân
+    function decToBin() {
+        let dec = parseInt(document.getElementById("decInput").value);
+        if (isNaN(dec)) return alert("Nhập số thập phân hợp lệ");
+        document.getElementById("decToBinResult").innerText = `${dec} (10) = ${dec.toString(2)} (2)`;
+    }
+
+    // Tính toán nhị phân (+ - * /)
+    function calcBinary() {
+        let expr = document.getElementById("binExpr").value;
+        if (!expr) return alert("Nhập biểu thức nhị phân");
+
+        try {
+            // Tách toán hạng và toán tử
+            let match = expr.match(/^([01]+)([\+\-\*\/])([01]+)$/);
+            if (!match) return alert("Biểu thức không hợp lệ. Ví dụ: 101+11");
+
+            let a = parseInt(match[1], 2);
+            let op = match[2];
+            let b = parseInt(match[3], 2);
+
+            let res;
+            switch(op) {
+                case "+": res = a + b; break;
+                case "-": res = a - b; break;
+                case "*": res = a * b; break;
+                case "/": 
+                    if (b === 0) return alert("Không thể chia cho 0");
+                    res = Math.floor(a / b); 
+                    break;
+            }
+
+            document.getElementById("binCalcResult").innerText = 
+                `${expr} = ${res.toString(2)} (2) = ${res} (10)`;
+
+        } catch {
+            alert("Có lỗi khi tính toán");
+        }
+    }
+ </script>
 </body>
 </html>

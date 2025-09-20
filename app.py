@@ -1049,6 +1049,111 @@ def lock_quiz(quiz_id):
     flash(f"🔒 Bài kiểm tra '{quiz['title']}' đã bị khóa.", "success")
     return redirect(url_for("ai_education"))
 
+# ===== Hàm save toàn bộ results =====
+def save_quiz_results(results):
+    with open(RESULTS_FILE, "w", encoding="utf-8") as f:
+        json.dump(results, f, ensure_ascii=False, indent=2)
+
+
+@app.route("/quiz/<int:quiz_id>/delete", methods=["POST"])
+def delete_quiz(quiz_id):
+    quizzes = load_quizzes()
+    quiz = next((q for q in quizzes if q.get("id") == quiz_id), None)
+
+    if not quiz:
+        flash("❌ Không tìm thấy bài kiểm tra.", "danger")
+        return redirect(url_for("ai_education"))
+
+    # Ràng buộc quyền xoá
+    if not (
+        session.get("role") == "admin"
+        or (session.get("role") == "teacher" and session.get("username") == quiz.get("created_by"))
+    ):
+        flash("⚠️ Bạn không có quyền xoá bài kiểm tra này.", "warning")
+        return redirect(url_for("ai_education"))
+
+    # Thực hiện xoá
+    quizzes = [q for q in quizzes if q.get("id") != quiz_id]
+    save_quizzes(quizzes)
+
+    # Xoá luôn kết quả liên quan
+    results = load_quiz_results()
+    results = [r for r in results if r.get("quiz_id") != quiz_id]
+    save_quiz_results(results)
+
+    flash("✅ Đã xoá bài kiểm tra và toàn bộ kết quả liên quan.", "success")
+    return redirect(url_for("ai_education"))
+
+#THONG TIN CA NHAN
+PROFILE_FILE = "data/profile.json"
+
+def load_profiles():
+    if not os.path.exists(PROFILE_FILE):
+        return {}
+    try:
+        with open(PROFILE_FILE, "r", encoding="utf-8") as f:
+            content = f.read().strip()
+            if not content:  # file rỗng
+                return {}
+            return json.loads(content)
+    except json.JSONDecodeError:
+        return {}
+
+
+def save_profiles(profiles):
+    with open(PROFILE_FILE, "w", encoding="utf-8") as f:
+        json.dump(profiles, f, ensure_ascii=False, indent=2)
+
+@app.route("/profile", methods=["GET", "POST"])
+def profile():
+    if "username" not in session:
+        flash("⚠️ Bạn cần đăng nhập trước khi chỉnh sửa thông tin.", "warning")
+        return redirect(url_for("login"))
+
+    username = session["username"]
+    profiles = load_profiles()
+
+    # Nếu chưa có profile cho user → tạo trống
+    user_profile = profiles.get(username, {
+        "name": "",
+        "student_id": "",
+        "birthdate": "",
+        "gender": "",
+        "hometown": ""
+    })
+
+    if request.method == "POST":
+        # Lấy dữ liệu từ form
+        user_profile = {
+            "name": request.form.get("name", "").strip(),
+            "student_id": request.form.get("student_id", "").strip(),
+            "birthdate": request.form.get("birthdate", "").strip(),
+            "gender": request.form.get("gender", "").strip(),
+            "hometown": request.form.get("hometown", "").strip()
+        }
+
+        # Cập nhật vào dict profiles theo username
+        profiles[username] = user_profile
+        save_profiles(profiles)
+
+        flash("✅ Cập nhật thông tin thành công!", "success")
+        return redirect(url_for("profile"))
+        
+
+    # Truyền dữ liệu ra giao diện
+    return render_template("profile.html", user=user_profile, username=username)
+
+@app.route("/profile/<username>/<int:quiz_id>")
+def view_profile(username, quiz_id):
+    profiles = load_profiles()
+    user = profiles.get(username)
+
+    if not user:
+        flash("❌ Không tìm thấy thông tin người dùng.", "danger")
+        return redirect(url_for("ai_education"))
+
+    return render_template("profile_view.html", user=user, username=username, quiz_id=quiz_id)
+
 
 ########
 # if __name__ == "__main__":

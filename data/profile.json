@@ -1,0 +1,23 @@
+{
+  "dương": {
+    "name": "Nguyễn Thị Thùy Dương",
+    "student_id": "2211020008",
+    "birthdate": "2003-05-10",
+    "gender": "Nữ",
+    "hometown": "Tiền Giang"
+  },
+  "Xuân Nhi": {
+    "name": "Bùi Thị Xuân Nhi",
+    "student_id": "Giảng viên",
+    "birthdate": "2003-09-01",
+    "gender": "Nữ",
+    "hometown": "Trà Vinh"
+  },
+  "ngọc hân": {
+    "name": "Nguyễn Thị Ngọc Hân",
+    "student_id": "00",
+    "birthdate": "2003-02-09",
+    "gender": "Nữ",
+    "hometown": "Trà Vinh"
+  }
+}

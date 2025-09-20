@@ -4,7 +4,7 @@
         "role": "admin",
         "approved": true
     },
-    "huan": {
+    "Xuân Nhi": {
         "password": "scrypt:32768:8:1$lTm1ullPv7nIuTcp$89cc4ef4d0c3e8a3e38141a15a3527b8110bde3d1d8bf15cf79e09f1383dc804935793ae3a3f7238379b9c48a082be7b3049b6fb6944b05035527ca4dc812d2c",
         "role": "teacher",
         "approved": true

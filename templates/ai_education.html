@@ -28,7 +28,7 @@
 </head>
 <body>
 <div class="container-box">
-  <h1>🎓 {{ subject_name }} - AI Học Cùng Bạn</h1>
+  <h1 style="text-align: center;">🎓 {{ subject_name }}  AI Học Cùng Bạn</h1>
 
   <!-- Tabs -->
   <ul class="nav nav-tabs mb-3" id="educationTabs" role="tablist">
@@ -227,9 +227,6 @@
         <button class="btn btn-success btn-sm me-1" data-bs-toggle="modal" data-bs-target="#autoQuizModal">
           🤖 Tạo trắc nghiệm tự động (AI)
         </button>
-        <button class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#essayQuizModal">
-          ✍️ Tạo bài kiểm tra tự luận
-        </button>
       </div>
       {% endif %}
     </div>
@@ -281,13 +278,24 @@
                   📋 Xem kết quả
                 </a>
                 {% if quiz.locked %}
-                  <button class="btn btn-secondary btn-sm w-100" disabled>🔒 Đã khóa</button>
+                <button class="btn btn-secondary btn-sm w-100" disabled>🔒 Đã khóa</button>
                 {% else %}
-                  <form method="POST" action="{{ url_for('lock_quiz', quiz_id=quiz.id) }}">
-                    <button type="submit" class="btn btn-warning btn-sm w-100">
-                      🔒 Khóa bài kiểm tra
-                    </button>
-                  </form>
+                  {% if session.get("username") == quiz.creator or session.get("role") == "admin" %}
+                    <form method="POST" action="{{ url_for('lock_quiz', quiz_id=quiz.id) }}">
+                      <button type="submit" class="btn btn-warning btn-sm w-100">
+                        🔒 Khóa bài kiểm tra
+                      </button>
+                    </form>
+                  {% endif %}
+                {% endif %}
+                <!-- Nút xóa -->
+                {% if session.get('role') == "admin" or (session.get('role') == "teacher" and session.get('username') == quiz.creator) %}
+                <form method="POST" action="{{ url_for('delete_quiz', quiz_id=quiz.id) }}" 
+                      onsubmit="return confirm('Bạn có chắc chắn muốn xóa bài kiểm tra này không?');">
+                  <button type="submit" class="btn btn-danger btn-sm w-100">
+                    🗑️ Xóa
+                  </button>
+                </form>
                 {% endif %}
               </div>
             </div>
@@ -325,35 +333,6 @@
       </div>
       <div class="modal-footer">
         <button type="submit" class="btn btn-success">Tạo</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal: Tạo bài kiểm tra tự luận -->
-<div class="modal fade" id="essayQuizModal" tabindex="-1">
-  <div class="modal-dialog">
-    <form method="POST" action="{{ url_for('create_essay_quiz') }}" class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">✍️ Tạo bài kiểm tra tự luận</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <div class="mb-2">
-          <label>Tiêu đề</label>
-          <input type="text" name="title" class="form-control" required>
-        </div>
-        <div class="mb-2">
-          <label>Thời gian (phút)</label>
-          <input type="number" name="duration" class="form-control" required>
-        </div>
-        <div class="mb-2">
-          <label>Đề bài</label>
-          <textarea name="content" class="form-control" rows="4" required></textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="submit" class="btn btn-secondary">Tạo</button>
       </div>
     </form>
   </div>

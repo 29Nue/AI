@@ -45,8 +45,12 @@
       <tbody>
         {% for r in results %}
         <tr>
-          <td>{{ loop.index }}</td>  {# index bắt đầu từ 1 #}
-          <td>{{ r.user }}</td>
+          <td>{{ loop.index }}</td>
+          <td>
+            <a href="{{ url_for('view_profile', username=r.user, quiz_id=quiz.id) }}" class="text-decoration-none">
+              {{ r.user }}
+            </a>
+          </td>
           <td>
             {% if r.score is not none %}
               {{ r.score }}/{{ quiz.num_questions }}

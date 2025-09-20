@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Thông tin cá nhân</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(to right, #fce4ec, #e0f7fa);
+      font-family: 'Times New Roman', Times, serif;
+    }
+    .profile-card {
+      max-width: 900px;
+      margin: 8vh auto;
+      padding: 40px;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    .profile-card h2 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-weight: bold;
+      color: #333;
+    }
+    .form-label {
+      font-weight: 600;
+      color: #444;
+    }
+    .form-control, .form-select {
+      border-radius: 12px;
+      padding: 10px 15px;
+      border: 1px solid #ccc;
+      transition: 0.3s;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: #6c63ff;
+      box-shadow: 0 0 8px rgba(108,99,255,0.3);
+    }
+    .btn-save {
+      background: #6c63ff;
+      color: #fff;
+      font-weight: 600;
+      border-radius: 12px;
+      padding: 10px 20px;
+      transition: 0.3s;
+    }
+    .btn-save:hover {
+      background: #574fd6;
+    }
+    .btn-back {
+      border-radius: 12px;
+      padding: 10px 20px;
+    }
+  </style>
+  <script>
+  // Tự động ẩn thông báo sau 3 giây
+  setTimeout(() => {
+    const alert = document.getElementById('flash-message');
+    if (alert) {
+      alert.classList.remove('show'); // Bootstrap hide animation
+    }
+  }, 3000);
+</script>
+
+</head>
+<body>
+  <div class="profile-card">
+    <h2 class = "text-info"> 📋 Thông tin cá nhân </h2>
+    <form method="POST" action="/profile">
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label"> 💎Họ tên</label>
+          <input type="text" class="form-control" name="name" value="{{ user.name }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"> 🌟Mã số sinh viên / chức vụ</label>
+          <input type="text" class="form-control" name="student_id" value="{{ user.student_id }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"> 📅 Ngày sinh</label>
+          <input type="date" class="form-control" name="birthdate" value="{{ user.birthdate }}">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label"> ⚧ Giới tính</label>
+          <select class="form-select" name="gender">
+            <option value="Nam" {% if user.gender=="Nam" %}selected{% endif %}>Nam</option>
+            <option value="Nữ" {% if user.gender=="Nữ" %}selected{% endif %}>Nữ</option>
+            <option value="Khác" {% if user.gender=="Khác" %}selected{% endif %}>Khác</option>
+          </select>
+        </div>
+        <div class="col-md-12">
+          <label class="form-label">📍Quê quán</label>
+          <input type="text" class="form-control" name="hometown" value="{{ user.hometown }}">
+        </div>
+      </div>
+
+      <div class="d-flex justify-content-between mt-4">
+        <a href="/" class="btn btn-outline-secondary btn-back">⬅️ Quay lại</a>
+        <button type="submit" class="btn btn-save">💾 Lưu thay đổi</button>
+      </div>
+     {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, msg in messages %}
+            <div class="alert alert-success alert-dismissible fade show mx-auto mt-3" 
+                style="max-width: 900px;" role="alert" id="flash-message">
+                {{ msg }}
+            </div>
+            {% endfor %}
+        {% endif %}
+     {% endwith %}
+    </form>
+  </div>
+</body>
+</html>
