@@ -1,64 +1,113 @@
 [
   {
-    "id": 1,
-    "title": "hhh",
-    "duration": 5,
-    "num_questions": 5,
+    "id": 2,
+    "title": "10 câu kiểm thử",
+    "duration": 15,
+    "num_questions": 10,
     "questions": [
       {
-        "question": "Hệ điều hành Android có logo là con gì?",
+        "question": "Mục tiêu chính của kiểm thử phần mềm là gì?",
         "options": {
-          "A": "Con robot xanh",
-          "B": "Con mèo",
-          "C": "Con chim",
-          "D": "Con ong"
-        },
-        "answer": "A"
-      },
-      {
-        "question": "Logo Google có bao nhiêu màu?",
-        "options": {
-          "A": "3",
-          "B": "4",
-          "C": "5",
-          "D": "6"
+          "A": "Chứng minh rằng phần mềm không có lỗi",
+          "B": "Xác nhận rằng phần mềm hoạt động đúng như mong đợi",
+          "C": "Đảm bảo phần mềm được viết bằng ngôn ngữ mới nhất",
+          "D": "Kiểm tra tốc độ xử lý của phần mềm"
         },
         "answer": "B"
       },
       {
-        "question": "Hệ điều hành nào dưới đây là mã nguồn mở?",
+        "question": "Kiểm thử hộp đen (Black-box testing) tập trung vào:",
         "options": {
-          "A": "Windows",
-          "B": "macOS",
-          "C": "Linux",
-          "D": "iOS"
+          "A": "Cấu trúc mã nguồn bên trong",
+          "B": "Dòng điều khiển và logic chương trình",
+          "C": "Đầu vào và đầu ra của hệ thống",
+          "D": "Phân tích hiệu năng phần mềm"
         },
         "answer": "C"
       },
       {
-        "question": "Trong hệ nhị phân, số 1011 bằng bao nhiêu trong hệ thập phân?",
+        "question": "Kiểm thử đơn vị (Unit testing) thường được thực hiện bởi:",
         "options": {
-          "A": "9",
-          "B": "10",
-          "C": "11",
-          "D": "12"
+          "A": "Người dùng cuối",
+          "B": "Nhóm kiểm thử (Tester)",
+          "C": "Lập trình viên (Developer)",
+          "D": "Quản lý dự án"
         },
         "answer": "C"
       },
       {
-        "question": "Trong mạng máy tính, từ viết tắt \"IP\" có nghĩa là gì?",
+        "question": "Trong vòng đời kiểm thử, hoạt động nào diễn ra đầu tiên?",
         "options": {
-          "A": "Internet Provider",
-          "B": "Internal Protocol",
-          "C": "Internet Protocol",
-          "D": "Input Processing"
+          "A": "Thiết kế test case",
+          "B": "Phân tích yêu cầu",
+          "C": "Báo cáo kết quả kiểm thử",
+          "D": "Thực hiện kiểm thử"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Công cụ nào sau đây dùng để tự động hóa kiểm thử giao diện web?",
+        "options": {
+          "A": "JUnit",
+          "B": "Selenium",
+          "C": "Postman",
+          "D": "Jenkins"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Trong kiểm thử hộp trắng (White-box testing), mục tiêu là:",
+        "options": {
+          "A": "Phát hiện lỗi giao diện người dùng",
+          "B": "Kiểm tra logic bên trong của chương trình",
+          "C": "Xác nhận tính năng theo yêu cầu",
+          "D": "So sánh kết quả với đầu ra mong đợi"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "“Regression testing” được thực hiện khi nào?",
+        "options": {
+          "A": "Khi phần mềm lần đầu được xây dựng",
+          "B": "Sau khi thêm hoặc sửa chức năng",
+          "C": "Trước khi bắt đầu phát triển",
+          "D": "Sau khi phần mềm ra mắt thị trường"
+        },
+        "answer": "B"
+      },
+      {
+        "question": "Loại kiểm thử nào nhằm đảm bảo hệ thống vẫn chạy được khi tải lớn?",
+        "options": {
+          "A": "Unit testing",
+          "B": "Usability testing",
+          "C": "Performance testing",
+          "D": "Security testing"
+        },
+        "answer": "C"
+      },
+      {
+        "question": "Trong báo cáo lỗi (bug report), mục “Severity” dùng để mô tả:",
+        "options": {
+          "A": "Mức độ nghiêm trọng của lỗi",
+          "B": "Người phát hiện lỗi",
+          "C": "Trạng thái của lỗi (open/closed)",
+          "D": "Ngày phát hiện lỗi"
+        },
+        "answer": "A"
+      },
+      {
+        "question": "Khi nào kiểm thử được xem là hoàn tất?",
+        "options": {
+          "A": "Khi không còn lỗi nào được phát hiện",
+          "B": "Khi hết thời gian kiểm thử",
+          "C": "Khi rủi ro được giảm đến mức chấp nhận được",
+          "D": "Khi khách hàng chấp nhận sản phẩm"
         },
         "answer": "C"
       }
     ],
     "creator": "Xuân Nhi",
-    "created_at": "19-09-2025 16:28",
-    "type": "Trắc nghiệm AI",
-    "locked": false
+    "created_at": "06-10-2025 16:26",
+    "type": "Trắc nghiệm AI"
   }
 ]

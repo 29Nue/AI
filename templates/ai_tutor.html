@@ -2,44 +2,130 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8">
-  <title>AI Fusion - Trợ Giúng Cảm Xúc & Học Tập</title>
+  <title>🎓 AI Fusion - Trợ Giúp Cảm Xúc & Học Tập</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style> 
-    body { background: linear-gradient(to right, #e2ebcd, #fce4ec); font-family: 'Times New Roman', Times, serif; }
-    .container { max-width: 800px; margin: 5vh auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); }
-    textarea { resize: none; min-height: 120px; }
-    .btn-primary { background-color: #6c63ff; border: none; }
-    .btn-primary:hover { background-color: #574fd6; }
-    h2 { font-weight: bold; margin-bottom: 20px; text-align: center; }
-    .alert { font-size: 1rem; line-height: 1.6; }
-    .alert strong {
-      font-size: 1.2rem; /* to hơn mặc định */
-      color: #004085;    /* xanh đậm dễ nhìn */
-  }
-</style>
+  <style>
+    body {
+      background: linear-gradient(135deg, #e6f8e0, #e8defa); 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
 
+    .ai-card {
+      background: #ffffffcc;
+      backdrop-filter: blur(10px);
+      border-radius: 25px;
+      padding: 35px 40px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      width: 100%;
+      max-width: 750px;
+      transition: all 0.3s ease;
+    }
+
+    .ai-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+    }
+
+    h2 {
+      text-align: center;
+      font-weight: 700;
+      color: #444;
+      margin-bottom: 25px;
+    }
+
+    .form-label {
+      font-weight: 600;
+      color: #555;
+      margin-bottom: 8px;
+    }
+
+    textarea {
+      border-radius: 15px;
+      border: 1.5px solid #ddd;
+      resize: none;
+      min-height: 130px;
+      padding: 15px;
+      transition: border-color 0.3s;
+    }
+
+    textarea:focus {
+      border-color: #6c63ff;
+      box-shadow: 0 0 0 3px rgba(108,99,255,0.2);
+    }
+
+    .btn-send {
+      background: linear-gradient(to right, #6c63ff, #a280ff);
+      border: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 1.05rem;
+      transition: all 0.3s;
+    }
+
+    .btn-send:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .ai-response {
+      background: #f3f6ff;
+      border-left: 6px solid #6c63ff;
+      border-radius: 15px;
+      padding: 20px;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-top: 25px;
+      white-space: pre-line;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 25px;
+      text-decoration: none;
+      color: #666;
+      transition: color 0.2s;
+    }
+
+    .back-link:hover {
+      color: #6c63ff;
+    }
+
+    @media (max-width: 768px) {
+      .ai-card {
+        padding: 25px 20px;
+      }
+      h2 {
+        font-size: 1.6rem;
+      }
+    }
   </style>
 </head>
 <body>
-<div class="container">
-  <h2>💡 AI Gợi Ý </h2>
+  <div class="ai-card">
+    <h2>💡 AI Trợ Giúp Cảm Xúc & Học Tập</h2>
+    <form method="POST" action="/ai_tutor">
+      <label class="form-label">📘 Viết câu hỏi hoặc yêu cầu của bạn:</label>
+      <textarea name="question" class="form-control" placeholder="Ví dụ: Hãy giúp mình tóm tắt nội dung bài giảng hôm nay...">{{ question }}</textarea>
+      <div class="d-grid mt-4">
+        <button type="submit" class="btn btn-send py-2">✨ Gửi cho AI</button>
+      </div>
+    </form>
 
-  <form method="POST" action="/ai_tutor" class="mb-4">
-    <label class="form-label">💬 Viết về câu hỏi hoặc yêu cầu của bạn:</label>
-    <textarea name="question" class="form-control" placeholder="Bạn cần gì ở tớ...">{{ question }}</textarea>
-    <div class="d-grid mt-3">
-      <button type="submit" class="btn btn-primary">✨ Gửi cho AI</button>
+    {% if answer %}
+    <div class="ai-response mt-4">
+      🧠 <strong>Trả lời từ AI:</strong><br>
+      {{ answer }}
     </div>
-  </form>
+    {% endif %}
 
-  {% if answer %}
-  <div class="alert alert-info" style="white-space: pre-line;">
-    <strong>🧠 Trả lời từ AI:</strong><br>
-    {{ answer }}
+    <a href="/" class="back-link">&larr; Quay lại trang chủ</a>
   </div>
-  {% endif %}
-
-  <a href="/" class="btn btn-outline-secondary mt-3">&larr; Quay lại trang chủ</a>
-</div>
 </body>
 </html>

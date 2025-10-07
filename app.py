@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, session,send_from_directory # type: ignore
+from flask import Flask,jsonify, render_template, request, redirect, url_for, flash, session,send_from_directory # type: ignore
 from deep_translator import GoogleTranslator  # type: ignore
 import speech_recognition as sr  # type: ignore
 from gtts import gTTS  # type: ignore
@@ -12,16 +12,19 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash # type: ignore
 import cv2,  uuid # type: ignore
 from docx import Document # type: ignore
+from PIL import Image # type: ignore
+import io
+from datetime import datetime, timedelta
+
 
 # Cài đặt
 AudioSegment.converter = which("ffmpeg")
-genai.configure(api_key="AIzaSyDivJEnLAKUhoj0kXrB-EDfQ77YQqECUv0")  # Gemini API
+genai.configure(api_key="AIzaSyD5fOve7k8CZMfZNWChXLcuLpHxVsclY0E")  # Gemini API
 
 app = Flask(__name__)
 app.secret_key = "emiu-dang-yeu-vo-cuc-2025"
 
-# Đường dẫn lưu lịch trình
-DATA_PATH = "data/schedules.json"
+
 
 USERS_FILE = "data/users.json"
 def load_users():
@@ -35,25 +38,9 @@ def save_users(users):
         json.dump(users, f, ensure_ascii=False, indent=4)
 
 
-def load_schedules():
-    if not os.path.exists(DATA_PATH):
-        return {}
-    try:
-        with open(DATA_PATH, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            if not isinstance(data, dict):
-                return {}
-            return data
-    except json.JSONDecodeError:
-        return {}
-
 os.makedirs("static/audio", exist_ok=True)
 os.makedirs("data", exist_ok=True)
 
-# Đảm bảo file JSON tồn tại
-if not os.path.exists(DATA_PATH):
-    with open(DATA_PATH, "w", encoding="utf-8") as f:
-        json.dump({}, f, ensure_ascii=False)
 
 # TRANG CHÍNH
 @app.route("/")
@@ -98,9 +85,6 @@ def login():
 
     return render_template("login.html")
 
-users = {
-    "nhi": {"password": "nhi123", "role": "admin", "approved": True, "created_at": str(datetime.now())}
-}
 @app.route("/approve_teachers")
 def approve_teachers():
     users = load_users()
@@ -178,7 +162,6 @@ def register():
     return render_template("register.html")
 
 
-
 @app.route("/logout")
 def logout():
     session.clear()  # Xóa toàn bộ session
@@ -196,8 +179,19 @@ def translate():
     if request.method == "POST":
         original_text = request.form.get("text_input", "")
         lang = request.form.get("lang", "en")
-        if original_text:
-            translated_text = GoogleTranslator(source='auto', target=lang).translate(original_text)
+
+        if original_text.strip():
+            model = genai.GenerativeModel("gemini-2.0-flash")
+
+            prompt = f"""
+            Nhiệm vụ của bạn là DỊCH chính xác đoạn văn sau sang ngôn ngữ "{lang}".
+            - Nếu có ý cần giải thích hoặc phân tích thêm, hãy ghi ở DÒNG MỚI sau bản dịch, bắt đầu bằng '📘 Giải thích:'.
+            - Tuyệt đối không trộn phần giải thích vào nội dung dịch chính.
+            Đoạn cần dịch:
+            {original_text}
+            """
+            response = model.generate_content(prompt)
+            translated_text = response.text.strip()
 
     return render_template(
         "translate.html",
@@ -205,8 +199,7 @@ def translate():
         original_text=original_text,
         lang=lang
     )
-
-
+    
 # AI GHI ÂM + DỊCH + PHÁT ÂM
 @app.route("/speech_translate", methods=["POST"])
 def speech_translate():
@@ -271,7 +264,7 @@ def ai_tutor():
         question = request.form.get("question", "")
         if question:
             try:
-                model = genai.GenerativeModel("gemini-1.5-flash")
+                model = genai.GenerativeModel("gemini-2.5-flash")
                 chat = model.start_chat(history=[])
                 response = chat.send_message(f"{question}\n\nHãy trả lời hoàn toàn bằng tiếng Việt.")
                 answer = response.text
@@ -295,7 +288,7 @@ def emotion():
         emotion_text = request.form.get("emotion_text", "")
         if emotion_text:
             try:
-                model = genai.GenerativeModel("gemini-1.5-flash")
+                model = genai.GenerativeModel("gemini-2.5-flash")
                 response = model.generate_content(
                     f"Người dùng viết: \"{emotion_text}\".\n\n"
                     "Hãy phân tích cảm xúc này và đưa ra gợi ý cải thiện tinh thần. "
@@ -311,168 +304,6 @@ def emotion():
     return render_template("emotion.html",
                            emotion_text=emotion_text,
                            emotion_response=emotion_response)
-
-# QUẢN LÝ THỜI GIAN – GIAI ĐOẠN 1: Lập lịch
-import os
-import json
-from datetime import datetime
-import random
-
-# 🎯 Hàm đánh giá trạng thái và lời khen theo thời gian hoàn thành
-def get_task_status(task_time_str: str, done_time_str: str):
-    fmt = "%H:%M"
-    task_time = datetime.strptime(task_time_str, fmt)
-    done_time = datetime.strptime(done_time_str, fmt)
-    diff_minutes = (done_time - task_time).total_seconds() / 60
-
-    khen_dung_gio = [
-        "🎉 Làm đúng giờ, đúng chuẩn không cần chỉnh!",
-        "✨ Bạn làm đúng giờ như đồng hồ Thụy Sĩ!",
-        "💪 Bạn đỉnh thiệt, hoàn thành đúng hẹn rồi!",
-        "🕐 Đúng giờ như hẹn hò crush, xịn xò!"
-    ]
-    khen_30p = [
-        "⏱️ Chậm tí thôi nè, vẫn rất tuyệt nha!",
-        "💡 Vào làm rồi mới bấm, hợp lý đó!",
-        "🌈 Chấp nhận được, vẫn xứng đáng được khen!",
-        "👏 Tuy hơi trễ nhẹ, nhưng tinh thần tốt lắm!"
-    ]
-    loanghoang = [
-        "😅 Hơi trễ rồi đó nha, nhớ cố hơn lần sau nha~",
-        "🐌 Lịch bị sên kéo hả? Mau cải thiện nghen!",
-        "😴 Trễ thiệt rồi, nhưng vẫn hoàn thành là đáng khen!",
-        "🧸 Bạn vẫn ổn chứ? Muộn nhưng có trách nhiệm!"
-    ]
-
-    if diff_minutes <= 0:
-        return "hoanthanh", random.choice(khen_dung_gio)
-    elif diff_minutes <= 30:
-        return "hoanthanh_som", random.choice(khen_30p)
-    else:
-        return "hoanthanh_tre", random.choice(loanghoang)
-
-# 🧱 GIAI ĐOẠN 1: Lập bảng lịch trình
-@app.route("/time_manager", methods=["GET", "POST"])
-def time_manager():
-    if "username" not in session:
-        flash("⚠️ Vui lòng đăng nhập trước!", "danger")
-        return redirect(url_for("login"))
-
-    username = session["username"]
-    schedules = load_schedules()
-
-    if request.method == "POST":
-        selected_date = request.form.get("date")
-        tasks = json.loads(request.form.get("tasks_json", "[]"))
-
-        if username not in schedules:
-            schedules[username] = {}
-
-        schedules[username][selected_date] = tasks
-
-        with open(DATA_PATH, "w", encoding="utf-8") as f:
-            json.dump(schedules, f, ensure_ascii=False, indent=2)
-
-        return redirect(url_for("view_schedule_list"))
-
-    return render_template("time_manager.html")
-
-# 🗂️ GIAI ĐOẠN 2.1: Danh sách các ngày đã có lịch
-@app.route("/schedule_list", methods=["GET", "POST"])
-def view_schedule_list():
-    if "username" not in session:
-        flash("⚠️ Vui lòng đăng nhập trước!", "danger")
-        return redirect(url_for("login"))
-
-    username = session["username"]
-    schedules = load_schedules()
-    user_schedules = schedules.get(username, {})
-
-    if request.method == "POST":
-        date_to_delete = request.form.get("delete_date")
-        if date_to_delete and date_to_delete in user_schedules:
-            del user_schedules[date_to_delete]
-            schedules[username] = user_schedules
-            with open(DATA_PATH, "w", encoding="utf-8") as f:
-                json.dump(schedules, f, ensure_ascii=False, indent=2)
-            flash(f"🗑️ Đã xóa lịch trình ngày {date_to_delete}", "info")
-        else:
-            flash("❌ Không tìm thấy ngày cần xóa", "danger")
-
-        return redirect(url_for("view_schedule_list"))
-
-    sorted_dates = sorted(user_schedules.keys(), reverse=True)
-    return render_template("schedule_list.html", dates=sorted_dates)
-
-# 📝 GIAI ĐOẠN 2.2: Chi tiết lịch trình theo ngày
-@app.route("/schedule/<date>", methods=["GET", "POST"])
-def view_schedule_by_date(date):
-    if "username" not in session:
-        flash("⚠️ Vui lòng đăng nhập trước!", "danger")
-        return redirect(url_for("login"))
-
-    username = session["username"]
-    schedules = load_schedules()
-    user_schedules = schedules.get(username, {})
-
-    today = datetime.now().date()
-    date_obj = datetime.strptime(date, "%Y-%m-%d").date()
-
-    if request.method == "POST":
-        action = request.form.get("action")
-        index = int(request.form.get("index", -1))
-
-        if date not in user_schedules or not (0 <= index < len(user_schedules[date])):
-            flash("❌ Không tìm thấy lịch trình!", "danger")
-            return redirect(url_for("view_schedule_by_date", date=date))
-
-        task = user_schedules[date][index]
-
-        if action == "done":
-            if date_obj > today:
-                flash(f"📅 Chưa đến ngày {date}, không thể đánh dấu hoàn thành nha bạn iu~", "warning")
-                return redirect(url_for("view_schedule_by_date", date=date))
-
-            now = datetime.now()
-            task_time = datetime.strptime(f"{date} {task['time']}", "%Y-%m-%d %H:%M")
-
-            if now < task_time:
-                flash(f"⏳ Chưa tới giờ làm task này đâu nè! Giờ task là {task['time']}", "warning")
-                return redirect(url_for("view_schedule_by_date", date=date))
-
-            now_time = now.strftime("%H:%M")
-            task["done"] = True
-            task["done_time"] = now_time
-            task["status"], task["message"] = get_task_status(task["time"], now_time)
-            flash("✅ Đã đánh dấu hoàn thành!", "success")
-
-        elif action == "edit":
-            task["content"] = request.form.get("new_content", task["content"])
-            task["time"] = request.form.get("new_time", task["time"])
-            flash("✏️ Đã cập nhật lịch trình!", "success")
-
-        elif action == "delete":
-            user_schedules[date].pop(index)
-            flash("🗑️ Đã xóa lịch trình!", "info")
-
-        schedules[username] = user_schedules
-        with open(DATA_PATH, "w", encoding="utf-8") as f:
-            json.dump(schedules, f, ensure_ascii=False, indent=2)
-
-        return redirect(url_for("view_schedule_by_date", date=date))
-
-    # Nếu là GET
-    task_list = user_schedules.get(date, [])
-    now = datetime.now()
-
-    for task in task_list:
-        if not task.get("done"):
-            task_time = datetime.strptime(f"{date} {task['time']}", "%Y-%m-%d %H:%M")
-            if task_time < now:
-                task["status"] = "tre"
-                task["message"] = "😢 Trễ mất rồi, lần sau cố nha~"
-
-    return render_template("schedule_detail.html", date=date, tasks=task_list, now=now)
 
 # tinh toan vui
 @app.route('/calculator_tools')
@@ -828,7 +659,7 @@ Trả về JSON array, mỗi phần tử:
 {text}
 \"\"\"
     """
-    model = genai.GenerativeModel("gemini-1.5-flash")
+    model = genai.GenerativeModel("gemini-2.5-flash")
     response = model.generate_content(prompt)
     content = response.text.strip()
 
@@ -1067,7 +898,7 @@ def delete_quiz(quiz_id):
     # Ràng buộc quyền xoá
     if not (
         session.get("role") == "admin"
-        or (session.get("role") == "teacher" and session.get("username") == quiz.get("created_by"))
+        or (session.get("role") == "teacher" and session.get("username") == quiz.get("creator"))
     ):
         flash("⚠️ Bạn không có quyền xoá bài kiểm tra này.", "warning")
         return redirect(url_for("ai_education"))
@@ -1154,7 +985,483 @@ def view_profile(username, quiz_id):
 
     return render_template("profile_view.html", user=user, username=username, quiz_id=quiz_id)
 
+# Route đến trang AI Tạo Lịch Trình
+@app.route('/ai_schedule')
+def ai_schedule_page():
+    if "username" not in session:
+        return redirect(url_for("login"))
+    
+    # Nếu login rồi thì render trang tạo lịch trình
+    return render_template("ai_schedule.html")
 
+SCHEDULE_FILE = "data/scheduleNew.json"
+
+def load_schedules():
+    if os.path.exists(SCHEDULE_FILE):
+        with open(SCHEDULE_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_schedules(data):
+    with open(SCHEDULE_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+# Route trả về toàn bộ lịch trình
+@app.route('/get_all_schedules')
+def get_all_schedules():
+    username = request.args.get('username') or session.get('username')
+    schedules = load_schedules()
+    if username:
+        # chỉ trả lịch của user đó
+        schedules = [s for s in schedules if s.get('username') == username]
+    return jsonify(schedules)
+
+# Route đánh dấu hoàn thành
+@app.route('/mark_complete/<int:schedule_id>', methods=['POST'])
+def mark_complete(schedule_id):
+    # username có thể gửi trong body JSON hoặc lấy từ session
+    body = {}
+    try:
+        body = request.get_json(force=False) or {}
+    except Exception:
+        body = {}
+    username = body.get('username') or request.form.get('username') or session.get('username')
+
+    schedules = load_schedules()
+    updated = False
+    for s in schedules:
+        if s.get("id") == schedule_id:
+            # kiểm tra ownership (nếu schedule gắn username)
+            owner = s.get("username")
+            if owner and username and owner != username:
+                return jsonify({"error": "Không có quyền sửa lịch này"}), 403
+            s["status"] = "hoàn thành"
+            updated = True
+            break
+
+    if updated:
+        save_schedules(schedules)
+        return jsonify({"success": True})
+    else:
+        return jsonify({"error": "Không tìm thấy lịch"}), 404
+
+# Xóa lịch: chỉ xóa khi cùng username (hoặc admin nếu ko truyền username)
+@app.route('/delete_schedule/<int:schedule_id>', methods=['POST'])
+def delete_schedule(schedule_id):
+    try:
+        body = request.get_json(force=False) or {}
+    except Exception:
+        body = {}
+    username = body.get('username') or request.form.get('username') or session.get('username')
+
+    schedules = load_schedules()
+    target = None
+    for s in schedules:
+        if s.get("id") == schedule_id:
+            target = s
+            break
+
+    if not target:
+        return jsonify({"error": "Không tìm thấy lịch"}), 404
+
+    owner = target.get("username")
+    if owner and username and owner != username:
+        return jsonify({"error": "Không có quyền xóa lịch này"}), 403
+
+    # xóa thật
+    schedules = [s for s in schedules if s.get("id") != schedule_id]
+    save_schedules(schedules)
+    return jsonify({"success": True})
+
+# Route xử lý ảnh và append vào JSON
+@app.route('/process_image', methods=['POST'])
+def process_image_route():
+    if 'file' not in request.files:
+        return jsonify({"error": "Không tìm thấy file ảnh"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "File không hợp lệ"}), 400
+
+    # username có thể được gửi kèm trong form hoặc lấy từ session
+    username = request.form.get('username') or session.get('username')
+
+    schedule_data = ai_generate_schedule(file)
+    if schedule_data:
+        schedules = load_schedules()
+        max_id = max([s.get("id", 0) for s in schedules], default=0)
+        for item in schedule_data.get("schedule", []):
+            max_id += 1
+            item["id"] = max_id
+            item["status"] = "chưa"
+            # gán username nếu có (nếu ko có, để None hoặc 'public')
+            if username:
+                item["username"] = username
+            else:
+                item["username"] = "public"
+            # nếu item chưa có date, map theo start_date (đã có hàm get_date_for_weekday)
+            if "date" not in item or not item["date"] or item["date"] == "N/A":
+                item["date"] = get_date_for_weekday(schedule_data.get("start_date", "N/A"), item.get("day", ""))
+            # nếu group rỗng thì xoá key cho gọn
+            if "group" in item and (item["group"] is None or str(item["group"]).strip() == ""):
+                item.pop("group", None)
+
+        schedules.extend(schedule_data.get("schedule", []))
+        save_schedules(schedules)
+        return jsonify(schedule_data)
+    else:
+        return jsonify({"error": "Không thể xử lý ảnh. Vui lòng thử lại"}), 500
+
+
+# Hàm xử lý logic chính: gửi ảnh đến Gemini và yêu cầu trích xuất thông tin
+def ai_generate_schedule(image_file):
+    """
+    Gửi ảnh thời khóa biểu đến Gemini 1.5-flash để trích xuất thông tin.
+    """
+    try:
+        img = Image.open(io.BytesIO(image_file.read()))
+        
+        prompt = """
+        Phân tích hình ảnh thời khóa biểu này. Trích xuất các thông tin sau:
+            1. Bắt đầu từ ngày và từ ngày.
+            2. Tên các môn học.
+            3. Thứ (Thứ Hai, Thứ Ba, ...).
+            4. Tiết học (ví dụ: 678, 12345).
+            5. Nhóm học (nếu có, nếu không có thì để chuỗi rỗng "")
+            6. Phòng học.
+            Dựa vào bảng quy ước sau, hãy tính thời gian tương ứng cho mỗi môn:
+            - Tiết 1: 7:30-8:20
+            - Tiết 2: 8:20-9:10
+            - Tiết 3: 9:10-10:00
+            - Tiết 4: 10:10-11:00
+            - Tiết 5: 11:00-11:50
+            - Tiết 6: 13:00-13:50
+            - Tiết 7: 13:50-14:40
+            - Tiết 8: 14:40-15:30
+            - Tiết 9: 15:40-16:30
+            - Tiết 10: 16:30-17:20
+
+            - Quy tắc: Với một chuỗi tiết học, hãy chỉ lấy giờ bắt đầu của tiết đầu tiên và giờ kết thúc của tiết cuối cùng.
+            - Lưu ý đặc biệt: Tiết 10 được ký hiệu là số 0 hoặc 10. Khi bạn thấy một số 0 đứng sau một số từ 1 đến 9, hãy hiểu nó là tiết 10. Ví dụ, "90" là Tiết 9 và Tiết 10.
+
+            - Ví dụ:
+                - Tiết 123: Lấy giờ bắt đầu của Tiết 1 (7:30) và giờ kết thúc của Tiết 3 (10:00). Kết quả: "7:30-10:00".
+                - Tiết 45: Lấy giờ bắt đầu của Tiết 4(10h10) và giờ kết thúc của Tiết 5 (11h50). Kết quả: "10:10-11:50".
+                - Tiết 12345: 7:30-11:50.
+                - Tiết 678: Lấy giờ bắt đầu của Tiết 6 (13:00) và giờ kết thúc của Tiết 8 (15:30). Kết quả: "13:00-15:30".
+                - Tiết 90: Lấy giờ bắt đầu của Tiết 9 (15:40) và giờ kết thúc của Tiết 10 (17:20). Kết quả: "15:40-17:20".
+                - Tiết 67890: Lấy giờ bắt đầu của Tiết 6 (13:00) và giờ kết thúc của Tiết 10 (17:20). Kết quả: "13:00-17:20".
+
+            Xuất kết quả dưới định dạng JSON, với cấu trúc sau:
+            {
+            "start_date": "Ngày bắt đầu học",
+            "week_info": "Tuần học và ngày bắt đầu-kết thúc",
+            "schedule": [
+                {
+                "subject": "Tên môn học",
+                "day": "Thứ",
+                "sessions": "Tiết học",
+                "group": "Nhóm học hoặc chuỗi rỗng nếu không có",
+                "room": "Phòng học",
+                "time": "Thời gian"
+                }
+            ]
+            }
+        """
+        model = genai.GenerativeModel("gemini-2.5-flash")
+        response = model.generate_content([prompt, img])
+        content = response.text.strip()
+        
+        # Thêm logic để xử lý JSON trả về
+        # Tìm phần tử JSON trong chuỗi trả về (nếu có)
+        match = re.search(r"\{.*\}", content, re.DOTALL)
+        if match:
+            json_string = match.group(0)
+            try:
+                schedule_data = json.loads(json_string)
+
+                # ✅ thêm date cho từng lịch
+                for item in schedule_data.get("schedule", []):
+                    item["date"] = get_date_for_weekday(
+                        schedule_data.get("start_date", "N/A"),
+                        item.get("day", "")
+                    )
+
+                # Trả về đối tượng JSON đã parse và bổ sung date
+                return schedule_data
+
+            except json.JSONDecodeError as e:
+                print(f"Lỗi JSONDecodeError: {e}")
+                print(f"Chuỗi JSON bị lỗi: {json_string}")
+                return None
+
+
+    except Exception as e:
+        print(f"Lỗi xử lý ảnh: {e}")
+        return None
+    
+    
+def get_date_for_weekday(start_date_str, weekday_name):
+    """
+    Trả về ngày (dd/mm/yyyy) ứng với weekday_name dựa vào start_date.
+    Hỗ trợ cả dạng 'Thứ Hai', 'Thứ 2', '2', 'T2', ...
+    """
+    from datetime import datetime, timedelta
+    
+    # Map chuẩn (Mon=0, Sun=6)
+    weekday_map = {
+        "thứ hai": 0, "thứ 2": 0, "2": 0, "t2": 0,
+        "thứ ba": 1, "thứ 3": 1, "3": 1, "t3": 1,
+        "thứ tư": 2, "thứ 4": 2, "4": 2, "t4": 2,
+        "thứ năm": 3, "thứ 5": 3, "5": 3, "t5": 3,
+        "thứ sáu": 4, "thứ 6": 4, "6": 4, "t6": 4,
+        "thứ bảy": 5, "thứ 7": 5, "7": 5, "t7": 5,
+        "chủ nhật": 6, "cn": 6, "8": 6
+    }
+
+    # Chuẩn hóa weekday_name về chữ thường
+    wk = str(weekday_name).strip().lower()
+    target_index = weekday_map.get(wk, None)
+    if target_index is None:
+        return "N/A"
+
+    # Chuẩn hóa start_date
+    try:
+        if "-" in start_date_str:
+            start_date = datetime.strptime(start_date_str, "%Y-%m-%d")
+        else:
+            start_date = datetime.strptime(start_date_str, "%d/%m/%Y")
+    except Exception:
+        return "N/A"
+
+    # Giả định start_date là Thứ Hai đầu tuần
+    delta_days = target_index - 0
+    target_date = start_date + timedelta(days=delta_days)
+    return target_date.strftime("%d/%m/%Y")
+
+@app.route('/get_sorted_schedules')
+def get_sorted_schedules():
+    username = request.args.get('username') or session.get('username')
+    schedules = load_schedules()
+    if username:
+        schedules = [s for s in schedules if s.get('username') == username]
+
+    from datetime import datetime
+
+    def parse_date_safe(d):
+        if not d or d == "N/A":
+            return datetime.max
+        try:
+            if "-" in d:
+                return datetime.strptime(d.strip(), "%Y-%m-%d")
+            return datetime.strptime(d.strip(), "%d/%m/%Y")
+        except:
+            return datetime.max
+
+    def parse_time_safe(t):
+        if not t or t == "N/A":
+            return datetime.min
+        try:
+            start = str(t).split("-")[0].strip()
+            # thêm 0 nếu chỉ có 1 chữ số giờ
+            if re.match(r"^\d:\d{2}$", start):
+                start = "0" + start
+            return datetime.strptime(start, "%H:%M")
+        except:
+            return datetime.min
+
+    def status_order_safe(status):
+        order = {"chưa": 0, "trễ": 1, "hoàn thành": 2, "hoàn thành trễ": 3}
+        if not status:
+            return 0
+        return order.get(status.strip().lower(), 99)
+
+    schedules.sort(
+        key=lambda s: (
+            status_order_safe(s.get("status")),
+            parse_date_safe(s.get("date")),
+            parse_time_safe(s.get("time"))
+        )
+    )
+
+    return jsonify(schedules)
+
+#Thi
+EXAM_FILE = "data/exams.json"
+
+# ---- Load & Save Exams ----
+def load_exams():
+    if os.path.exists(EXAM_FILE):
+        with open(EXAM_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_exams(data):
+    with open(EXAM_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+# ---- Route trả về toàn bộ lịch thi ----
+@app.route('/get_all_exams')
+def get_all_exams():
+    username = request.args.get('username') or session.get('username')
+    exams = load_exams()
+    if username:
+        exams = [e for e in exams if e.get('username') == username]
+    return jsonify(exams)
+
+# ---- Route xoá lịch thi ----
+@app.route('/delete_exam/<int:exam_id>', methods=['POST'])
+def delete_exam(exam_id):
+    try:
+        body = request.get_json(force=False) or {}
+    except Exception:
+        body = {}
+    username = body.get('username') or request.form.get('username') or session.get('username')
+
+    exams = load_exams()
+    target = None
+    for e in exams:
+        if e.get("id") == exam_id:
+            target = e
+            break
+
+    if not target:
+        return jsonify({"error": "Không tìm thấy lịch thi"}), 404
+
+    owner = target.get("username")
+    if owner and username and owner != username:
+        return jsonify({"error": "Không có quyền xóa lịch thi này"}), 403
+
+    exams = [e for e in exams if e.get("id") != exam_id]
+    save_exams(exams)
+    return jsonify({"success": True})
+
+# ---- Route xử lý ảnh và append vào JSON ----
+@app.route('/process_exam_image', methods=['POST'])
+def process_exam_image_route():
+    if 'file' not in request.files:
+        return jsonify({"error": "Không tìm thấy file ảnh"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "File không hợp lệ"}), 400
+
+    # Ưu tiên lấy username từ session
+    username = session.get('username')
+    
+    # Nếu session không có, kiểm tra trong form data
+    if not username:
+        username = request.form.get('username')
+
+    # Nếu vẫn không có username, trả về lỗi
+    if not username:
+        return jsonify({"error": "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại"}), 401
+
+    # Gọi AI để phân tích ảnh lịch thi
+    exam_data = ai_generate_exam_schedule(file)
+
+    if exam_data:
+        exams = load_exams()
+        max_id = max([e.get("id", 0) for e in exams], default=0)
+        for item in exam_data.get("exams", []):
+            max_id += 1
+            item["id"] = max_id
+            item["status"] = "chưa"
+            # Gán username đã được xác thực
+            item["username"] = username
+            
+        exams.extend(exam_data.get("exams", []))
+        save_exams(exams)
+        return jsonify(exam_data)
+    else:
+        return jsonify({"error": "Không thể xử lý ảnh. Vui lòng thử lại"}), 500
+
+def ai_generate_exam_schedule(image_file):
+    """
+    Gửi ảnh lịch thi đến Gemini để trích xuất thông tin.
+    """
+    try:
+        img = Image.open(io.BytesIO(image_file.read()))
+        
+        prompt = """
+        Phân tích hình ảnh lịch thi này và trích xuất thông tin sau cho từng môn thi:
+        1. Tên môn học.
+        2. Ngày thi (dd/mm/yyyy).
+        3. Giờ thi (ví dụ: 7:30).
+        4. Phòng thi.
+        5. Số tín chỉ của môn học (nếu có).
+
+        Quy tắc trích xuất và kế thừa thông tin:
+        - Nếu trong bảng, một cụm nhiều môn học nằm liền kề theo hàng, nhưng ngày/giờ/phòng chỉ ghi ở **hàng đầu tiên**, thì các môn phía dưới **phải kế thừa** đầy đủ ngày, giờ, phòng từ hàng đầu tiên của cụm đó.
+        - **TUYỆT ĐỐI KHÔNG** để trống hoặc điền null.
+        - **CHỈ** điền "N/A" cho một trường thông tin khi và chỉ khi nó không được đề cập ở bất kỳ đâu, bao gồm cả các hàng phía trên trong cùng một cụm.
+        
+        Mỗi môn thi là một đối tượng JSON riêng, ngay cả khi chung ngày/giờ/phòng.
+
+        Xuất kết quả dưới định dạng JSON như sau:
+        
+        {
+        "exam_info": "Thông tin kỳ thi (nếu có, ví dụ: kỳ thi học kỳ 1, năm học 2025)",
+        "exams": [
+            {
+            "subject": "Tên môn học",
+            "date": "Ngày thi",
+            "time": "Giờ thi",
+            "room": "Phòng thi",
+            "credits": "Số tín chỉ"
+            }
+        ]
+        }
+        """
+        model = genai.GenerativeModel("gemini-1.5-flash")
+        response = model.generate_content([prompt, img])
+        content = response.text.strip()
+        
+        match = re.search(r"\{.*\}", content, re.DOTALL)
+        if match:
+            json_string = match.group(0)
+            try:
+                exam_data = json.loads(json_string)
+                exams = exam_data.get("exams", [])
+                
+                # Logic xử lý hậu kỳ để kế thừa dữ liệu
+                last_valid_date = None
+                last_valid_time = None
+                last_valid_room = None
+                
+                for item in exams:
+                    # Cập nhật giá trị hợp lệ cuối cùng cho các cột
+                    if item.get("date") not in ["N/A", "", None]:
+                        last_valid_date = item.get("date")
+                    
+                    if item.get("time") not in ["N/A", "", None]:
+                        last_valid_time = item.get("time")
+                    
+                    if item.get("room") not in ["N/A", "", None]:
+                        last_valid_room = item.get("room")
+                
+                # Sau khi có các giá trị hợp lệ cuối cùng, duyệt lại để điền vào các trường bị thiếu
+                for item in exams:
+                    if item.get("date") in ["N/A", "", None]:
+                        item["date"] = last_valid_date if last_valid_date else "N/A"
+                    
+                    if item.get("time") in ["N/A", "", None]:
+                        item["time"] = last_valid_time if last_valid_time else "N/A"
+                        
+                    if item.get("room") in ["N/A", "", None]:
+                        item["room"] = last_valid_room if last_valid_room else "N/A"
+
+                    item.setdefault("credits", "N/A")
+
+                return exam_data
+
+            except json.JSONDecodeError as e:
+                print(f"Lỗi JSONDecodeError: {e}")
+                print(f"Chuỗi JSON bị lỗi: {json_string}")
+                return None
+
+    except Exception as e:
+        print(f"Lỗi xử lý ảnh lịch thi: {e}")
+        return None
 ########
 # if __name__ == "__main__":
 #     app.run(debug=True) 
