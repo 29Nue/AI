@@ -1465,9 +1465,9 @@ def ai_generate_exam_schedule(image_file):
         print(f"Lỗi xử lý ảnh lịch thi: {e}")
         return None
 ########
+# if __name__ == "__main__":
+#      app.run(debug=True) 
 if __name__ == "__main__":
-     app.run(debug=True) 
-#if __name__ == "__main__":
-   # port = int(os.environ.get("PORT", 5000))
-   # app.run(host="0.0.0.0", port=port)
+   port = int(os.environ.get("PORT", 5000))
+   app.run(host="0.0.0.0", port=port)
 
