@@ -292,9 +292,11 @@
       🗣️ <strong>Giọng nói thành chữ:</strong> {{ speech_text }}<br />
       🌍 <strong>Dịch:</strong> {{ speech_translated }}
     </div>
-    <audio controls>
-      <source src="{{ url_for('static', filename='audio/output.mp3') }}" type="audio/mpeg" />
-      Trình duyệt không hỗ trợ audio.
+    {% endif %}
+
+    {% if audio_file %}
+    <audio controls autoplay>
+        <source src="{{ audio_file }}" type="audio/mpeg">
     </audio>
     {% endif %}
 

@@ -201,6 +201,8 @@ def translate():
     )
     
 # AI GHI ÂM + DỊCH + PHÁT ÂM
+from datetime import datetime
+
 @app.route("/speech_translate", methods=["POST"])
 def speech_translate():
     os.makedirs("static/audio", exist_ok=True)
@@ -214,7 +216,7 @@ def speech_translate():
     wav_path = "static/audio/converted.wav"
     file.save(input_path)
 
-    # Chuyển webm → wav
+    # chuyển webm -> wav
     AudioSegment.from_file(input_path).export(wav_path, format="wav")
 
     try:
@@ -222,35 +224,35 @@ def speech_translate():
             audio = r.record(source)
             speech_text = r.recognize_google(audio, language="vi-VN")
     except sr.UnknownValueError:
-        return render_template(
-            "translate.html",
+        return render_template("translate.html",
             speech_text="Không nghe rõ, vui lòng thử lại",
-            speech_translated="",
-            lang="en"
-        )
+            speech_translated="", lang="en")
     except sr.RequestError:
-        return render_template(
-            "translate.html",
+        return render_template("translate.html",
             speech_text="Lỗi kết nối với Google Speech API",
-            speech_translated="",
-            lang="en"
-        )
+            speech_translated="", lang="en")
 
     target_lang = request.form.get("target_lang", "en")
     speech_translated = GoogleTranslator(source='auto', target=target_lang).translate(speech_text)
 
-    # Phát âm bản dịch từ giọng nói
+    # 🔸 tạo tên file mp3 duy nhất
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
+    mp3_filename = f"output_{timestamp}.mp3"
+    mp3_path = os.path.join("static/audio", mp3_filename)
+
+    # lưu file mp3
     tts = gTTS(speech_translated, lang=target_lang)
-    mp3_path = "static/audio/output.mp3"
     tts.save(mp3_path)
+
+    # truyền tên file mp3 sang html
+    audio_url = f"/{mp3_path}"
 
     return render_template(
         "translate.html",
-        translated="",
-        original_text="",
         lang=target_lang,
         speech_text=speech_text,
-        speech_translated=speech_translated
+        speech_translated=speech_translated,
+        audio_file=audio_url
     )
 
 
@@ -1463,9 +1465,9 @@ def ai_generate_exam_schedule(image_file):
         print(f"Lỗi xử lý ảnh lịch thi: {e}")
         return None
 ########
-# if __name__ == "__main__":
-#     app.run(debug=True) 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+     app.run(debug=True) 
+#if __name__ == "__main__":
+   # port = int(os.environ.get("PORT", 5000))
+   # app.run(host="0.0.0.0", port=port)
 
