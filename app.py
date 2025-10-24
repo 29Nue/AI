@@ -174,7 +174,21 @@ def logout():
 def translate():
     translated_text = ""
     original_text = ""
-    lang = "en"
+    lang = request.form.get("lang") or request.args.get("lang") or "en"
+
+    # Bảng ánh xạ mã ngôn ngữ sang tên
+    lang_map = {
+        "en": "English",
+        "vi": "Vietnamese",
+        "ja": "Japanese",
+        "ko": "Korean",
+        "fr": "French",
+        "zh": "Chinese",
+        "th": "Thai",
+        "es": "Spanish",
+        "de": "German",
+        "ru": "Russian"
+    }
 
     if request.method == "POST":
         original_text = request.form.get("text_input", "")
@@ -182,14 +196,25 @@ def translate():
 
         if original_text.strip():
             model = genai.GenerativeModel("gemini-2.0-flash")
+            target_language = lang_map.get(lang, "English")
 
             prompt = f"""
-            Nhiệm vụ của bạn là DỊCH chính xác đoạn văn sau sang ngôn ngữ "{lang}".
-            - Nếu có ý cần giải thích hoặc phân tích thêm, hãy ghi ở DÒNG MỚI sau bản dịch, bắt đầu bằng '📘 Giải thích:'.
-            - Tuyệt đối không trộn phần giải thích vào nội dung dịch chính.
-            Đoạn cần dịch:
+                You are a professional multilingual translator and language teacher.
+
+                Task:
+                1. The input text is in Vietnamese.
+                2. Translate it into **{target_language}** naturally and accurately.
+                3. If the target language uses non-Latin script (like Japanese, Korean, Chinese, Thai, Russian...):
+                - First, write the translation in the target script.
+                - On the next line, provide a romanized transcription and a simple reading guide for Vietnamese speakers, formatted as:
+                    (Phiên âm: [romanized form] — cách đọc: [cách đọc bằng tiếng Việt])
+                4. After that, if necessary, add one short explanation in **Vietnamese**, starting on a new line with "📘 Giải thích:".
+                5. Do NOT mix translation, phonetic, and explanation in the same line.
+
+            Text to translate:
             {original_text}
             """
+
             response = model.generate_content(prompt)
             translated_text = response.text.strip()
 
@@ -199,6 +224,8 @@ def translate():
         original_text=original_text,
         lang=lang
     )
+
+
     
 # AI GHI ÂM + DỊCH + PHÁT ÂM
 from datetime import datetime
@@ -1468,6 +1495,6 @@ def ai_generate_exam_schedule(image_file):
 # if __name__ == "__main__":
 #      app.run(debug=True) 
 if __name__ == "__main__":
-   port = int(os.environ.get("PORT", 5000))
-   app.run(host="0.0.0.0", port=port)
+  port = int(os.environ.get("PORT", 5000))
+  app.run(host="0.0.0.0", port=port)
 

@@ -249,6 +249,11 @@
             <option value="ja" {% if lang == 'ja' %}selected{% endif %}>🇯🇵 Tiếng Nhật</option>
             <option value="ko" {% if lang == 'ko' %}selected{% endif %}>🇰🇷 Tiếng Hàn</option>
             <option value="fr" {% if lang == 'fr' %}selected{% endif %}>🇫🇷 Tiếng Pháp</option>
+            <option value="zh" {% if lang == 'zh' %}selected{% endif %}>🇨🇳 Tiếng Trung</option>
+            <option value="th" {% if lang == 'th' %}selected{% endif %}>🇹🇭 Tiếng Thái</option>
+            <option value="es" {% if lang == 'es' %}selected{% endif %}>🇪🇸 Tiếng Tây Ban Nha</option>
+            <option value="de" {% if lang == 'de' %}selected{% endif %}>🇩🇪 Tiếng Đức</option>
+            <option value="ru" {% if lang == 'ru' %}selected{% endif %}>🇷🇺 Tiếng Nga</option>
           </select>
         </div>
         <div class="col-md-4 d-grid mt-2 mt-md-0">
@@ -278,10 +283,10 @@
         <label class="form-label fw-semibold">Ngôn ngữ dịch sang:</label>
         <select name="target_lang" class="form-select">
           <option value="en">🇬🇧 Tiếng Anh</option>
-          <option value="vi">🇻🇳 Tiếng Việt</option>
+          <!-- <option value="vi">🇻🇳 Tiếng Việt</option>
           <option value="ja">🇯🇵 Tiếng Nhật</option>
           <option value="ko">🇰🇷 Tiếng Hàn</option>
-          <option value="fr">🇫🇷 Tiếng Pháp</option>
+          <option value="fr">🇫🇷 Tiếng Pháp</option> -->
         </select>
       </div>
       <button id="submitBtn" type="submit" class="btn btn-warning" disabled>🚀 Gửi & Dịch</button>
