@@ -246,32 +246,59 @@ def speech_translate():
     # chuyển webm -> wav
     AudioSegment.from_file(input_path).export(wav_path, format="wav")
 
+    # Lấy ngôn ngữ nguồn & đích từ form
+    source_lang = request.form.get("source_lang", "vi")
+    target_lang = request.form.get("target_lang", "en")
+
+    # Chuyển mã ngôn ngữ cho Google Speech
+    speech_recog_lang = {
+        "vi": "vi-VN",
+        "en": "en-US",
+        "ja": "ja-JP",
+        "ko": "ko-KR",
+        "fr": "fr-FR",
+        "zh": "zh-CN",   # ✅ đồng nhất với HTML: "zh"
+        "th": "th-TH",
+        "es": "es-ES",
+        "de": "de-DE",
+        "ru": "ru-RU"
+    }.get(source_lang, "vi-VN")
+
     try:
         with sr.AudioFile(wav_path) as source:
             audio = r.record(source)
-            speech_text = r.recognize_google(audio, language="vi-VN")
+            # Nhận dạng giọng nói theo ngôn ngữ đã chọn
+            speech_text = r.recognize_google(audio, language=speech_recog_lang)
     except sr.UnknownValueError:
         return render_template("translate.html",
             speech_text="Không nghe rõ, vui lòng thử lại",
-            speech_translated="", lang="en")
+            speech_translated="", lang=target_lang)
     except sr.RequestError:
         return render_template("translate.html",
             speech_text="Lỗi kết nối với Google Speech API",
-            speech_translated="", lang="en")
+            speech_translated="", lang=target_lang)
 
-    target_lang = request.form.get("target_lang", "en")
-    speech_translated = GoogleTranslator(source='auto', target=target_lang).translate(speech_text)
+    # ✅ Map ngôn ngữ cho Deep Translator (fix lỗi "zh" không hỗ trợ)
+    lang_map = {
+        "zh": "chinese (simplified)",
+        "zh-CN": "chinese (simplified)",
+        "zh-TW": "chinese (traditional)"
+    }
+    target_lang_fixed = lang_map.get(target_lang, target_lang)
 
-    # 🔸 tạo tên file mp3 duy nhất
+    # Dịch sang ngôn ngữ đích mà người dùng chọn
+    speech_translated = GoogleTranslator(source='auto', target=target_lang_fixed).translate(speech_text)
+
+    # Tạo file mp3 cho bản dịch
     timestamp = datetime.now().strftime("%Y%m%d%H%M%S%f")
     mp3_filename = f"output_{timestamp}.mp3"
     mp3_path = os.path.join("static/audio", mp3_filename)
 
-    # lưu file mp3
+    # Lưu file âm thanh (gTTS vẫn dùng mã gốc, không cần fix)
     tts = gTTS(speech_translated, lang=target_lang)
     tts.save(mp3_path)
 
-    # truyền tên file mp3 sang html
+    # Đường dẫn phát lại
     audio_url = f"/{mp3_path}"
 
     return render_template(
@@ -281,7 +308,6 @@ def speech_translate():
         speech_translated=speech_translated,
         audio_file=audio_url
     )
-
 
 # AI HỌC TẬP
 @app.route("/ai_tutor", methods=["GET", "POST"])
@@ -734,9 +760,10 @@ def create_auto_quiz():
         flash("❌ AI không tạo được câu hỏi, kiểm tra lại file Word!", "danger")
         return redirect(url_for("ai_education"))
 
+    new_id = max([q["id"] for q in quizzes], default=0) + 1  # 🔥 đảm bảo ID duy nhất
 
     new_quiz = {
-        "id": len(quizzes) + 1,
+        "id": new_id,
         "title": title,
         "duration": duration,
         "num_questions": len(questions),
@@ -746,11 +773,13 @@ def create_auto_quiz():
         "type": "Trắc nghiệm AI"
     }
 
-
     quizzes.append(new_quiz)
     save_quizzes(quizzes)
 
-    return redirect(url_for("ai_education"))
+    flash("✅ Tạo bài kiểm tra thành công!", "success")
+    # 🔥 redirect thẳng tới trang quiz mới
+    return redirect(url_for("start_quiz", quiz_id=new_id))
+
 
 
 @app.route("/quiz/essay", methods=["POST"])

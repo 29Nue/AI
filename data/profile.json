@@ -19,5 +19,12 @@
     "birthdate": "2003-02-09",
     "gender": "Nữ",
     "hometown": "Trà Vinh"
+  },
+  "nhi": {
+    "name": "Xuân Nhi",
+    "student_id": "admin",
+    "birthdate": "2012-02-09",
+    "gender": "Nữ",
+    "hometown": "Trà Vinh"
   }
 }
