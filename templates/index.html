@@ -107,7 +107,17 @@
     <div class="mb-4">
       {% if 'username' in session %}
         <span class="me-2" style="font-size:1.2rem; font-weight:600;">
-          👋 Xin chào, <b>{{ session['username'] }}</b> ({{ session['role'] }})
+          👋 Xin chào, <b>{{ session['username'] }}</b> (
+              {% if session['role'] == 'student' %}
+                  Sinh viên
+              {% elif session['role'] == 'teacher' %}
+                  Giảng viên
+              {% elif session['role'] == 'admin' %}
+                  Quản trị viên
+              {% else %}
+                  Người dùng
+              {% endif %}
+              )
         </span>
         <a href="/logout" class="text-danger" title="Đăng xuất" style="font-size:1.2rem;">
           <i class="bi bi-box-arrow-right"></i>
