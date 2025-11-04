@@ -40,81 +40,89 @@
 
     <div class="tab-content mt-3">
 
-       <!-- Máy tính -->
+      <!-- Máy tính -->
     <div class="tab-pane fade show active" id="basicCalc">
     <div class="input-group mb-3">
-        <input type="text" id="calcDisplay" class="form-control text-end fs-4" readonly>
+        <input type="text" id="calcDisplay" class="form-control text-end fs-4" readonly placeholder="0">
     </div>
 
+    <!-- Hàng 7 8 9 / -->
     <div class="row g-2 mb-2">
-        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('7')">7</button></div>
-        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('8')">8</button></div>
-        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('9')">9</button></div>
+        <div class="col-3"><button class="btn btn-light w-100" onclick="appendCalc('7')">7</button></div>
+        <div class="col-3"><button class="btn btn-light w-100" onclick="appendCalc('8')">8</button></div>
+        <div class="col-3"><button class="btn btn-light w-100" onclick="appendCalc('9')">9</button></div>
         <div class="col-3"><button class="btn btn-warning w-100" onclick="appendCalc('/')">÷</button></div>
     </div>
 
+    <!-- Hàng 4 5 6 * -->
     <div class="row g-2 mb-2">
-        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('4')">4</button></div>
-        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('5')">5</button></div>
-        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('6')">6</button></div>
+        <div class="col-3"><button class="btn btn-light w-100" onclick="appendCalc('4')">4</button></div>
+        <div class="col-3"><button class="btn btn-light w-100" onclick="appendCalc('5')">5</button></div>
+        <div class="col-3"><button class="btn btn-light w-100" onclick="appendCalc('6')">6</button></div>
         <div class="col-3"><button class="btn btn-warning w-100" onclick="appendCalc('*')">×</button></div>
     </div>
 
+    <!-- Hàng 1 2 3 - -->
     <div class="row g-2 mb-2">
-        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('1')">1</button></div>
-        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('2')">2</button></div>
-        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('3')">3</button></div>
+        <div class="col-3"><button class="btn btn-light w-100" onclick="appendCalc('1')">1</button></div>
+        <div class="col-3"><button class="btn btn-light w-100" onclick="appendCalc('2')">2</button></div>
+        <div class="col-3"><button class="btn btn-light w-100" onclick="appendCalc('3')">3</button></div>
         <div class="col-3"><button class="btn btn-warning w-100" onclick="appendCalc('-')">−</button></div>
     </div>
 
+    <!-- Hàng 0 = ⌫ + -->
     <div class="row g-2 mb-2">
+        <div class="col-3"><button class="btn btn-light w-100" onclick="appendCalc('0')">0</button></div>
         <div class="col-3"><button class="btn btn-success w-100" onclick="calculate()">=</button></div>
-        <div class="col-3"><button class="btn btn-secondary w-100" onclick="appendCalc('0')">0</button></div>
-        <div class="col-3"><button class="btn btn-warning w-100" onclick="backspaceCalc()">⌫</button></div>
+        <div class="col-3"><button class="btn btn-secondary w-100" onclick="backspaceCalc()">⌫</button></div>
         <div class="col-3"><button class="btn btn-warning w-100" onclick="appendCalc('+')">+</button></div>
     </div>
 
+    <!-- Hàng chức năng đặc biệt -->
     <div class="row g-2 mb-2">
         <div class="col-3"><button class="btn btn-danger w-100" onclick="clearCalc()">C</button></div>
-        <div class="col-3"><button class="btn btn-info w-100" onclick="appendCalc('**2')">x²</button></div>
-        <div class="col-3"><button class="btn btn-info w-100" onclick="appendCalc('**3')">x³</button></div>
-        <div class="col-3"><button class="btn btn-info w-100" onclick="appendCalc('**')">xʸ</button></div>
+        <div class="col-3"><button class="btn btn-info w-100" onclick="squareCalc()">x²</button></div>
+        <div class="col-3"><button class="btn btn-info w-100" onclick="cubeCalc()">x³</button></div>
+        <div class="col-3"><button class="btn btn-info w-100" onclick="powerCalc()">xʸ</button></div>
     </div>
 
+    <!-- Hàng căn bậc 2 và % -->
     <div class="row g-2">
-        <div class="col-6"><button class="btn btn-info w-100" onclick="sqrtCalc()">√</button></div>
-        <div class="col-6"><button class="btn btn-info w-100" onclick="appendCalc('%')">%</button></div>
+        <div class="col-6"><button class="btn btn-info w-100" onclick="sqrtCalc()">√x</button></div>
+        <div class="col-6"><button class="btn btn-info w-100" onclick="percentCalc()">%</button></div>
     </div>
     </div>
+
 
        <!-- Ngoại tệ -->
         <div class="tab-pane fade" id="currency">
-            <div class="mb-3">
-                <input type="number" id="amount" class="form-control" placeholder="Nhập số tiền">
-            </div>
-
-            <div class="mb-3">
-                <select id="currencySelect" class="form-select">
-                    <option value="usd">USD (1 USD = 26.225 VND)</option>
-                    <option value="eur">EUR (1 EUR = 30.531 VND)</option>
-                    <option value="jpy">JPY – Yên Nhật (1 JPY = 173.61 VND)</option>
-                    <option value="krw">KRW – Won Hàn (1 KRW = 18.15 VND)</option>
-                    <option value="cny">CNY – Nhân dân tệ Trung (1 CNY = 3,594 VND)</option>
-                    <option value="thb">THB – Baht Thái (1 THB = 794.75 VND)</option>
-                    <option value="inr">INR – Rupee Ấn (1 INR = 297.67 VND)</option>
-                </select>
-            </div>
-
-            <div class="mb-3">
-                <select id="directionSelect" class="form-select">
-                    <option value="vnd_to_foreign">VNĐ ➡ Ngoại tệ</option>
-                    <option value="foreign_to_vnd">Ngoại tệ ➡ VNĐ</option>
-                </select>
-            </div>
-
-            <button class="btn btn-primary" onclick="convertCurrency()">Chuyển đổi</button>
-            <p class="mt-3 fw-bold" id="currencyResult"></p>
+        <div class="mb-3">
+            <input type="number" id="amount" class="form-control" placeholder="Nhập số tiền">
         </div>
+
+        <div class="mb-3">
+            <select id="currencySelect" class="form-select">
+                <option value="usd">USD (1 USD = ...)</option>
+                <option value="eur">EUR (1 EUR = ...)</option>
+                <option value="jpy">JPY – Yên Nhật (1 JPY = ...)</option>
+                <option value="krw">KRW – Won Hàn (1 KRW = ...)</option>
+                <option value="cny">CNY – Nhân dân tệ Trung (1 CNY = ...)</option>
+                <option value="thb">THB – Baht Thái (1 THB = ...)</option>
+                <option value="inr">INR – Rupee Ấn (1 INR = ...)</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <select id="directionSelect" class="form-select">
+                <option value="vnd_to_foreign">VNĐ ➡ Ngoại tệ</option>
+                <option value="foreign_to_vnd">Ngoại tệ ➡ VNĐ</option>
+            </select>
+        </div>
+
+        <button class="btn btn-primary" onclick="convertCurrency()">Chuyển đổi</button>
+        <p class="mt-3 fw-bold" id="currencyResult"></p>
+        <small id="lastUpdate" class="text-muted"></small>
+    </div>
 
         <!-- BMI -->
         <div class="tab-pane fade" id="bmi">
@@ -214,53 +222,201 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     // Máy tính
-    function appendCalc(val) { document.getElementById('calcDisplay').value += val; }
-    function clearCalc() { document.getElementById('calcDisplay').value = ''; }
-    function calculate() {
-        try { document.getElementById('calcDisplay').value = eval(document.getElementById('calcDisplay').value); }
-        catch { alert('Phép tính không hợp lệ'); }
+   let calcDisplay = document.getElementById('calcDisplay');
+    let currentExpression = '';
+    let waitingForPower = false;
+
+    function appendCalc(value) {
+    if (waitingForPower && !isNaN(value)) {
+        currentExpression += `**${value}`;
+        waitingForPower = false;
+    } else {
+        currentExpression += value;
     }
-    function sqrtCalc() {
-        try { 
-            let val = parseFloat(document.getElementById('calcDisplay').value);
-            document.getElementById('calcDisplay').value = Math.sqrt(val); 
-        }
-        catch { alert('Không thể tính căn'); }
+    calcDisplay.value = currentExpression;
     }
+
+    function clearCalc() {
+    currentExpression = '';
+    calcDisplay.value = '';
+    }
+
     function backspaceCalc() {
-    let display = document.getElementById("calcDisplay");
-    display.value = display.value.slice(0, -1);
+    currentExpression = currentExpression.slice(0, -1);
+    calcDisplay.value = currentExpression;
+    }
+
+    function calculate() {
+    try {
+        let result = eval(currentExpression);
+        if (result === Infinity || isNaN(result)) {
+        calcDisplay.value = 'Lỗi 😢';
+        } else {
+        calcDisplay.value = result;
+        currentExpression = result.toString();
+        }
+    } catch {
+        calcDisplay.value = 'Lỗi 😢';
+    }
+    }
+
+    // x²
+    function squareCalc() {
+    try {
+        let value = parseFloat(currentExpression || calcDisplay.value);
+        if (!isNaN(value)) {
+        let result = Math.pow(value, 2);
+        calcDisplay.value = result;
+        currentExpression = result.toString();
+        }
+    } catch {
+        calcDisplay.value = 'Lỗi 😢';
+    }
+    }
+
+    // x³
+    function cubeCalc() {
+    try {
+        let value = parseFloat(currentExpression || calcDisplay.value);
+        if (!isNaN(value)) {
+        let result = Math.pow(value, 3);
+        calcDisplay.value = result;
+        currentExpression = result.toString();
+        }
+    } catch {
+        calcDisplay.value = 'Lỗi 😢';
+    }
+    }
+
+    // xʸ
+    function powerCalc() {
+    waitingForPower = true;
+    calcDisplay.value = currentExpression + '^';
+    }
+
+    // √x
+    function sqrtCalc() {
+    try {
+        let value = parseFloat(currentExpression || calcDisplay.value);
+        if (!isNaN(value)) {
+        let result = Math.sqrt(value);
+        calcDisplay.value = result;
+        currentExpression = result.toString();
+        }
+    } catch {
+        calcDisplay.value = 'Lỗi 😢';
+    }
+    }
+
+    // %
+    function percentCalc() {
+    try {
+        let value = parseFloat(currentExpression || calcDisplay.value);
+        if (!isNaN(value)) {
+        let result = value / 100;
+        calcDisplay.value = result;
+        currentExpression = result.toString();
+        }
+    } catch {
+        calcDisplay.value = 'Lỗi 😢';
+    }
     }
 
 
     // Ngoại tệ
-    function convertCurrency() {
-        const amount = parseFloat(document.getElementById("amount").value);
-        const currency = document.getElementById("currencySelect").value;
-        const direction = document.getElementById("directionSelect").value;
-
-        const rates = { 
-            usd: 26.225, // Đô Mỹ
-            eur: 30.531, // Euro
-            jpy: 173.61,   // Yên Nhật
-            krw: 18.15,    // Won Hàn
-            cny: 3594,  // Nhân dân tệ
-            thb: 794.75,   // Baht Thái
-            inr: 297.67  // Rupee Ấn
+    const defaultRates = {
+        USD: 26225,
+        EUR: 30531,
+        JPY: 173.61,
+        KRW: 18.15,
+        CNY: 3594,
+        THB: 794.75,
+        INR: 297.67,
         };
-        let result = "";
+        let rates = { ...defaultRates };
 
-        if (isNaN(amount) || amount <= 0) {
-            result = "Vui lòng nhập số tiền hợp lệ.";
-        } else {
-            if (direction === "vnd_to_foreign") {
-                result = (amount / rates[currency]).toFixed(2) + " " + currency.toUpperCase();
+        async function fetchRates() {
+        const API_URL = "https://open.er-api.com/v6/latest/VND";
+        try {
+            const res = await fetch(API_URL);
+            if (!res.ok) throw new Error("HTTP " + res.status);
+            const data = await res.json();
+
+            if (data && data.result === "success") {
+            for (let key in defaultRates) {
+                if (data.rates[key]) {
+                rates[key] = 1 / data.rates[key]; // Vì base là VND, ta đảo lại
+                }
+            }
+            updateSelectOptions();
+            updateLastUpdate(true, data.time_last_update_utc);
             } else {
-                result = (amount * rates[currency]).toLocaleString() + " VNĐ";
+            updateLastUpdate(false);
+            }
+        } catch (err) {
+            console.warn("Không thể lấy tỷ giá:", err);
+            updateLastUpdate(false);
+        }
+        }
+
+        function updateSelectOptions() {
+        const currencyMap = {
+            USD: "USD",
+            EUR: "EUR",
+            JPY: "JPY – Yên Nhật",
+            KRW: "KRW – Won Hàn",
+            CNY: "CNY – Nhân dân tệ Trung",
+            THB: "THB – Baht Thái",
+            INR: "INR – Rupee Ấn",
+        };
+
+        for (let key in currencyMap) {
+            const opt = document.querySelector(`#currencySelect option[value="${key.toLowerCase()}"]`);
+            if (opt) {
+            const formatted = rates[key].toLocaleString("vi-VN", { maximumFractionDigits: 2 });
+            opt.textContent = `${currencyMap[key]} (1 ${key} = ${formatted} VND)`;
             }
         }
-        document.getElementById("currencyResult").innerText = result;
-    }
+        }
+
+        function updateLastUpdate(success, time = null) {
+        const el = document.getElementById("lastUpdate");
+        if (success) {
+            el.innerText = `🔁 Tỷ giá cập nhật: ${new Date(time).toLocaleString("vi-VN")}`;
+        } else {
+            el.innerText = `⚠️ Không thể cập nhật tỷ giá (hiển thị dữ liệu mặc định)`;
+        }
+        }
+
+        function convertCurrency() {
+        const amount = parseFloat(document.getElementById("amount").value);
+        const currency = document.getElementById("currencySelect").value.toUpperCase();
+        const direction = document.getElementById("directionSelect").value;
+        const resultEl = document.getElementById("currencyResult");
+
+        if (isNaN(amount) || amount <= 0) {
+            resultEl.innerText = "⚠️ Vui lòng nhập số tiền hợp lệ.";
+            return;
+        }
+
+        if (!rates[currency]) {
+            resultEl.innerText = "❌ Không có tỷ giá cho " + currency;
+            return;
+        }
+
+        let result;
+        if (direction === "vnd_to_foreign") {
+            result = (amount / rates[currency]).toFixed(2) + " " + currency;
+        } else {
+            result = (amount * rates[currency]).toLocaleString("vi-VN") + " VNĐ";
+        }
+
+        resultEl.innerText = "💱 Kết quả: " + result;
+        }
+
+        // Chạy khi mở trang
+        updateSelectOptions();
+        fetchRates();
 
     // BMI
     function calcBMI() {

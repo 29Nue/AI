@@ -23,5 +23,10 @@
         "password": "scrypt:32768:8:1$fb1EmgucRa4JUWby$3ab4ce4e26e26e9e58a7c40e196085f4a4410286d939726ef8104dd2a688b20d6dbd1299d8d70f57c64dcf2fa9d8cd92bc15b7a690bb783fc6e043c06dd42a72",
         "role": "student",
         "approved": true
+    },
+    "anh thư": {
+        "password": "scrypt:32768:8:1$MwCjhfau0i2k6J7a$229b47a67b234fd800861ede2eac259cd901f14bb0a9128983e15d25a977378db0e73459fc13d76a7731f9c9061cacae3b196ffb80fea4d2308dc1a8cc954f86",
+        "role": "student",
+        "approved": true
     }
 }
