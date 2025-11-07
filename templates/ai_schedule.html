@@ -83,6 +83,13 @@
         box-shadow: 0 3px 6px rgba(0,0,0,0.15);
         }
 
+    .table {
+        font-size: 13px; /* 👈 chỉnh nhỏ hơn, ví dụ 12px hay 11px tùy em */
+    }
+    .table th, .table td {
+        padding: 4px 6px; /* 👈 giảm khoảng cách trong ô để bảng gọn hơn */
+        vertical-align: middle;
+    }
 
     </style>
 </head>
@@ -98,13 +105,16 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="thi-tab" data-bs-toggle="tab" data-bs-target="#thi" type="button" role="tab">📝 Lịch thi</button>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" id="day-tab" data-bs-toggle="tab" href="#day" role="tab">Lịch dạy</a>
+        </li>
     </ul>
 
     <div class="tab-content" id="scheduleTabsContent">
         <!-- Lịch học -->
         <div class="tab-pane fade show active" id="hoc" role="tabpanel">
             <!-- Upload -->
-            <div class="upload-area" id="upload-area-hoc">
+            <div class="upload-area" id="upload-area-hoc" style="cursor: pointer; border: 2px dashed #007bff; border-radius: 10px; padding: 20px; text-align: center;">
                 <i class="bi bi-cloud-upload upload-icon"></i>
                 <p class="mt-2">Kéo & thả ảnh <b>lịch học</b> vào đây hoặc 
                 <label for="file-upload-hoc" class="text-primary" style="cursor:pointer;">tải lên</label>.</p>
@@ -163,13 +173,14 @@
         <!-- Lịch thi -->
         <div class="tab-pane fade" id="thi" role="tabpanel">
             <!-- Upload -->
-           <div class="upload-area" id="upload-area-thi" style="cursor: pointer; border: 2px dashed #007bff; border-radius: 10px; padding: 20px; text-align: center;">
+            <div class="upload-area" id="upload-area-thi" 
+                style="cursor: pointer; border: 2px dashed #007bff; border-radius: 10px; padding: 20px; text-align: center;">
                 <i class="bi bi-cloud-upload upload-icon" style="font-size: 2rem; color: #007bff;"></i>
                 <p class="mt-2">Kéo & thả ảnh <b>lịch thi</b> vào đây hoặc click để chọn ảnh.</p>
                 <input type="file" id="file-upload-thi" accept="image/*" style="display:none" />
             </div>
 
-            <div id="loading-spinner-thi" class="text-center mt-4 spinner">
+            <div id="loading-spinner-thi" class="text-center mt-4 spinner" style="display:none;">
                 <div class="spinner-border text-primary"></div>
                 <p class="mt-2">AI đang phân tích lịch thi...</p>
             </div>
@@ -179,36 +190,141 @@
                 <img id="image-preview-thi" src="#" alt="Ảnh lịch thi" class="img-fluid rounded shadow-sm" />
             </div>
 
-            <!-- Kết quả AI -->
-            <div id="result-area-thi" class="result-area" style="display:none;">
-                <h4 class="text-center mb-3">Thông Tin Lịch Thi</h4>
-                <div id="schedule-details-thi"></div>
-            </div>
-
             <!-- Danh sách lịch thi -->
-            <div class="mt-4">
-                <h4 class="text-center mb-3">📚 Danh Sách Lịch Thi</h4>
-                <div class="mb-3 text-center">
-                    <input type="date" id="exam-filter-date" class="form-control w-25 d-inline-block" />
+            <div id="result-area-thi" class="mt-4" style="display:none;">
+                <h4 class="text-center mb-3">📚 Lịch Thi</h4>
 
-                    <select id="exam-filter-subject" class="form-select w-25 d-inline-block ms-2">
+                <!-- Thông tin kỳ thi -->
+                <div id="schedule-details-thi" class="mb-3 text-center text-secondary">
+                    <!-- JS sẽ chèn thông tin kỳ thi vào đây -->
+                </div>
+
+                <!-- Hàng 1: Ngày – Khóa – Môn học -->
+                <div class="mb-3 d-flex flex-wrap justify-content-center align-items-center gap-2">
+                    <input type="date" id="exam-filter-date" class="form-control w-auto" />
+                    <select id="exam-filter-course" class="form-select w-auto">
+                        <option value="">-- Chọn khóa --</option>
+                    </select>
+                    <select id="exam-filter-subject" class="form-select w-auto">
                         <option value="">-- Chọn môn thi --</option>
                     </select>
-
-                    <select id="exam-filter-room" class="form-select w-25 d-inline-block ms-2">
-                        <option value="">-- Chọn phòng --</option>
-                    </select>
-
-                    <button id="exam-filter-btn" class="btn btn-primary ms-2">Lọc</button>
-                    <button id="exam-show-all-btn" class="btn btn-success">ALL</button>
                 </div>
-                <div id="exam-schedule" class="accordion"></div>
+
+                <!-- Hàng 2: Nút thao tác -->
+                <div class="mb-3 d-flex justify-content-center gap-2">
+                    <button id="exam-filter-btn" class="btn btn-primary">Lọc</button>
+                    <button id="exam-show-all-btn" class="btn btn-success">ALL</button>
+                    <button id="exam-delete-btn" class="btn btn-danger">Xóa</button>
+                    <button id="exam-export-btn" class="btn btn-warning">Xuất Excel</button>
+                </div>
+
+                <!-- Bảng hiển thị lịch thi -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped align-middle text-center">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>#</th>
+                                <th>Môn học</th>
+                                <th>Tín chỉ</th>
+                                <th>Ngày thi</th>
+                                <th>Giờ thi</th>
+                                <th>Phòng thi</th>
+                                <th>Khóa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="exam-table-body">
+                            <!-- JS render ở đây -->
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+        <!-- Lịch dạy -->
+        <div class="tab-pane fade" id="day" role="tabpanel">
+            <!-- Upload Ảnh -->
+            <div class="upload-area mb-3" id="upload-area-day" 
+                style="cursor: pointer; border: 2px dashed #28a745; border-radius: 10px; padding: 20px; text-align: center;">
+                <i class="bi bi-cloud-upload upload-icon" style="font-size: 2rem; color: #28a745;"></i>
+                <p class="mt-2">Kéo & thả ảnh <b>lịch dạy</b> vào đây hoặc click để chọn ảnh.</p>
+                <input type="file" id="file-upload-day" accept="image/*" style="display:none" />
+            </div>
+
+            <!-- Upload File Excel -->
+            <div class="upload-area mb-4" id="upload-area-day-excel" 
+                style="cursor: pointer; border: 2px dashed #ffc107; border-radius: 10px; padding: 20px; text-align: center;">
+                <i class="bi bi-file-earmark-excel upload-icon" style="font-size: 2rem; color: #ffc107;"></i>
+                <p class="mt-2">Tải lên <b>file Excel</b> chứa lịch dạy để AI phân tích.</p>
+                <input type="file" id="file-upload-day-excel" accept=".xls,.xlsx" style="display:none" />
+            </div>
+
+            <!-- Loading -->
+            <div id="loading-spinner-day" class="text-center mt-4 spinner">
+                <div class="spinner-border text-success"></div>
+                <p class="mt-2">AI đang phân tích lịch dạy...</p>
+            </div>
+
+            <!-- Preview Ảnh -->
+            <div id="preview-image-day" class="mt-3 text-center" style="display:none;">
+                <h5>Ảnh lịch dạy:</h5>
+                <img id="image-preview-day" src="#" alt="Ảnh lịch dạy" class="img-fluid rounded shadow-sm" />
+            </div>
+
+            <!-- Kết quả AI -->
+            <div id="result-area-day" class="result-area" style="display:none;">
+                <h4 class="text-center mb-3">Thông Tin Lịch Dạy</h4>
+                <div id="schedule-details-day"></div>
+            </div>
+
+            <!-- Danh sách lịch dạy -->
+            <div class="mt-4">
+                <h4 class="text-center mb-3">👩‍🏫 Danh Sách Lịch Dạy</h4>
+
+                <!-- Hàng lọc -->
+                <div class="row justify-content-center mb-3 gx-2">
+                    <div class="col-md-2">
+                        <input type="date" id="teach-filter-date" class="form-control" />
+                    </div>
+                    <div class="col-md-3">
+                        <select id="teach-filter-subject" class="form-select">
+                            <option value="">-- Môn dạy --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select id="teach-filter-teacher" class="form-select">
+                            <option value="">-- Giáo viên --</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select id="teach-filter-room" class="form-select">
+                            <option value="">-- Phòng --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Hàng nút thao tác -->
+                <div class="text-center mb-4">
+                    <button id="teach-filter-btn" class="btn btn-success me-2">
+                        <i class="bi bi-funnel"></i> Lọc
+                    </button>
+                    <button id="teach-show-all-btn" class="btn btn-primary me-2">
+                        <i class="bi bi-list-ul"></i> ALL
+                    </button>
+                    <button id="teach-sort-btn" class="btn btn-warning me-2 text-white">
+                        <i class="bi bi-sort-alpha-down"></i> Sắp xếp
+                    </button>
+                    <button id="teach-export-btn" type="button" class="btn btn-outline-success">
+                        <i class="bi bi-file-earmark-excel"></i> Xuất Excel
+                    </button>
+                </div>
+                <div id="teach-schedule" class="accordion"></div>
             </div>
         </div>
     </div>
-    <a href="/" class="btn btn-outline-secondary mb-4"><i class="bi bi-arrow-left"></i> Quay lại trang chủ</a>
+    <br>
+        <a href="/" class="btn btn-outline-secondary mb-4"><i class="bi bi-arrow-left"></i> Quay lại trang chủ</a>
+    </div>
 </div>
-
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
@@ -482,13 +598,10 @@ document.getElementById("export-excel-btn").addEventListener("click", function (
     alert("✅ Đã xuất file Excel thành công!");
 });
 
-
-
-
 // --- Lịch Thi ---
 const examFilterDate = document.getElementById('exam-filter-date');
 const examFilterSubject = document.getElementById('exam-filter-subject');
-const examFilterRoom = document.getElementById('exam-filter-room');
+const examFilterCourse = document.getElementById('exam-filter-course');
 const examFilterBtn = document.getElementById('exam-filter-btn');
 const examShowAllBtn = document.getElementById('exam-show-all-btn');
 const examSchedule = document.getElementById('exam-schedule');
@@ -497,100 +610,113 @@ const fileUploadThi = document.getElementById("file-upload-thi");
 
 let allExams = [];
 
-// Cho click vào khung upload -> mở chọn file
+// --- Click upload mở file ---
 uploadAreaThi.addEventListener("click", () => fileUploadThi.click());
 
-// Populate filter
+// --- Populate dropdown filter ---
 function populateExamFilters() {
     const subjectSet = new Set();
-    const roomSet = new Set();
+    const courseSet = new Set();
 
     allExams.forEach(e => {
         if (e.subject) subjectSet.add(e.subject);
-        if (e.room) roomSet.add(e.room);
+        if (e.course) courseSet.add(e.course);
     });
 
     examFilterSubject.innerHTML = `<option value="">-- Chọn môn thi --</option>`;
-    examFilterRoom.innerHTML = `<option value="">-- Chọn phòng --</option>`;
+    examFilterCourse.innerHTML = `<option value="">-- Chọn khóa --</option>`;
 
-    subjectSet.forEach(sub => {
-        examFilterSubject.innerHTML += `<option value="${sub}">${sub}</option>`;
-    });
-
-    roomSet.forEach(r => {
-        examFilterRoom.innerHTML += `<option value="${r}">${r}</option>`;
-    });
+    subjectSet.forEach(sub => examFilterSubject.innerHTML += `<option value="${sub}">${sub}</option>`);
+    courseSet.forEach(c => examFilterCourse.innerHTML += `<option value="${c}">${c}</option>`);
 }
 
-// Render exam schedule
+// --- Render lịch thi dạng bảng ---
 function renderExamSchedule(list) {
-    examSchedule.innerHTML = "";
-    if (list.length === 0) {
-        examSchedule.innerHTML = `<p class="text-center text-muted">Không có lịch thi nào.</p>`;
+    const resultArea = document.getElementById("result-area-thi");
+    const tableBody = document.getElementById("exam-table-body");
+
+    if (!tableBody) {
+        console.error("Không tìm thấy phần tử #exam-table-body");
         return;
     }
 
-    list.forEach((item, idx) => {
-        examSchedule.innerHTML += `
-        <div class="accordion-item">
-            <h2 class="accordion-header" id="heading-exam-${idx}">
-                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
-                    data-bs-target="#collapse-exam-${idx}" aria-expanded="false" aria-controls="collapse-exam-${idx}">
-                    ${item.subject} – ${item.date} – ${item.time} – Phòng ${item.room}
-                </button>
-            </h2>
-            <div id="collapse-exam-${idx}" class="accordion-collapse collapse" 
-                 aria-labelledby="heading-exam-${idx}" data-bs-parent="#exam-schedule">
-                <div class="accordion-body">
-                    <p><b>Môn thi:</b> ${item.subject}</p>
-                    <p><b>Tín chỉ:</b> ${item.credits || "N/A"}</p>
-                    <p><b>Ngày thi:</b> ${item.date}</p>
-                    <p><b>Giờ thi:</b> ${item.time}</p>
-                    <p><b>Phòng thi:</b> ${item.room}</p>
-                </div>
-            </div>
-        </div>`;
+    tableBody.innerHTML = "";
+
+    if (!list || list.length === 0) {
+        resultArea.style.display = "block";
+        tableBody.innerHTML = `<tr><td colspan="7" class="text-center text-muted">Không có lịch thi nào.</td></tr>`;
+        return;
+    }
+
+    resultArea.style.display = "block";
+
+    list.forEach((exam, idx) => {
+        const row = `
+            <tr>
+                <td>${idx + 1}</td>
+                <td>${exam.subject}</td>
+                <td>${exam.credits}</td>
+                <td>${exam.date}</td>
+                <td>${exam.time}</td>
+                <td>${exam.room}</td>
+                <td>${exam.course}</td>
+            </tr>
+        `;
+        tableBody.insertAdjacentHTML("beforeend", row);
     });
 }
 
-// Fetch all exams
+// --- Cập nhật dữ liệu exam và render ---
+function updateExams(newExams) {
+    allExams = [...allExams, ...newExams]; // merge dữ liệu
+    populateExamFilters();
+    renderExamSchedule(allExams);
+}
+
 function fetchAllExams() {
     fetch('/get_all_exams')
         .then(res => res.json())
         .then(data => {
-            allExams = data;
+            allExams = data || [];
             populateExamFilters();
             renderExamSchedule(allExams);
+            document.getElementById("result-area-thi").style.display = "block";
         })
-        .catch(err => console.error(err));
+        .catch(err => console.error("Lỗi khi load lịch thi:", err));
 }
-fetchAllExams();
 
-// Filter click
+// --- Chuyển đổi date sang DD/MM/YYYY ---
+function formatDateToDMY(dateStr){
+    if(!dateStr) return "";
+    const d = new Date(dateStr);
+    const day = String(d.getDate()).padStart(2,'0');
+    const month = String(d.getMonth()+1).padStart(2,'0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+// --- Filter click ---
 examFilterBtn.addEventListener('click', () => {
-    const selectedDate = examFilterDate.value;
+    const selectedDate = formatDateToDMY(examFilterDate.value);
     const selectedSubject = examFilterSubject.value;
-    const selectedRoom = examFilterRoom.value;
+    const selectedCourse = examFilterCourse.value;
 
     let filtered = allExams;
-    if (selectedDate) filtered = filtered.filter(e => e.date === selectedDate);
-    if (selectedSubject) filtered = filtered.filter(e => e.subject === selectedSubject);
-    if (selectedRoom) filtered = filtered.filter(e => e.room === selectedRoom);
+    if(selectedDate) filtered = filtered.filter(e => e.date === selectedDate);
+    if(selectedSubject) filtered = filtered.filter(e => e.subject === selectedSubject);
+    if(selectedCourse) filtered = filtered.filter(e => e.course === selectedCourse);
 
     renderExamSchedule(filtered);
 });
 
-// Show all
-examShowAllBtn.addEventListener('click', () => {
-    renderExamSchedule(allExams);
-});
+// --- Show all ---
+examShowAllBtn.addEventListener('click', () => renderExamSchedule(allExams));
 
-// Upload & xử lý ảnh lịch thi
+// --- Upload & xử lý ảnh lịch thi ---
 fileUploadThi.addEventListener("change", function (event) {
     const file = event.target.files[0];
     if (!file) return;
 
-    // Preview ảnh
     const reader = new FileReader();
     reader.onload = (e) => {
         document.getElementById("preview-image-thi").style.display = "block";
@@ -598,80 +724,425 @@ fileUploadThi.addEventListener("change", function (event) {
     };
     reader.readAsDataURL(file);
 
-    // Hiện spinner
     document.getElementById("loading-spinner-thi").style.display = "block";
     document.getElementById("result-area-thi").style.display = "none";
 
-    // Gửi ảnh đến backend
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("username", "demo_user"); // hoặc lấy từ session
+    formData.append("username", "demo_user");
 
-    fetch("/process_exam_image", {
-        method: "POST",
-        body: formData
-    })
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById("loading-spinner-thi").style.display = "none";
+    fetch("/process_exam_image", { method: "POST", body: formData })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("loading-spinner-thi").style.display = "none";
+            if (data.error) return alert(data.error);
 
-        if (data.error) {
-            alert(data.error);
-            return;
-        }
+            const detailsDiv = document.getElementById("schedule-details-thi");
+            detailsDiv.innerHTML = "";
+            if (data.exam_info)
+                detailsDiv.innerHTML += `<p><b>Thông tin kỳ thi:</b> ${data.exam_info}</p>`;
 
-        // Hiển thị kết quả lịch thi
-        const detailsDiv = document.getElementById("schedule-details-thi");
-        detailsDiv.innerHTML = "";
+            if (data.exams && data.exams.length > 0) {
+                renderExamSchedule(data.exams);
+                updateExams(data.exams);
+            }
 
-        if (data.exam_info) {
-            detailsDiv.innerHTML += `<p><b>Thông tin kỳ thi:</b> ${data.exam_info}</p>`;
-        }
-
-        if (data.exams && data.exams.length > 0) {
-            let table = `
-                <table class="table table-bordered table-striped">
-                    <thead class="table-primary">
-                        <tr>
-                            <th>Môn học</th>
-                            <th>Ngày thi</th>
-                            <th>Giờ thi</th>
-                            <th>Phòng</th>
-                            <th>Tín chỉ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            data.exams.forEach(exam => {
-                table += `
-                    <tr>
-                        <td>${exam.subject}</td>
-                        <td>${exam.date}</td>
-                        <td>${exam.time}</td>
-                        <td>${exam.room}</td>                         
-                        <td>${exam.credits}</td>
-                    </tr>
-                `;
-            });
-
-            table += `</tbody></table>`;
-            detailsDiv.innerHTML += table;
-        }
-
-        document.getElementById("result-area-thi").style.display = "block";
-
-        // Cập nhật luôn danh sách exam local để filter
-        allExams = [...allExams, ...(data.exams || [])];
-        populateExamFilters();
-        renderExamSchedule(allExams);
-    })
-    .catch(error => {
-        console.error("Lỗi khi xử lý:", error);
-        document.getElementById("loading-spinner-thi").style.display = "none";
-        alert("Có lỗi xảy ra khi gửi ảnh!");
-    });
+            document.getElementById("result-area-thi").style.display = "block";
+        })
+        .catch(err => {
+            console.error(err);
+            document.getElementById("loading-spinner-thi").style.display = "none";
+            alert("Có lỗi xảy ra khi gửi ảnh!");
+        });
 });
+
+// --- Xuất Excel (Lịch Thi) ---
+document.getElementById('exam-export-btn').addEventListener('click', function () {
+    const selectedDate = examFilterDate.value ? formatDateToDMY(examFilterDate.value) : "";
+    const selectedSubject = examFilterSubject.value;
+    const selectedCourse = examFilterCourse.value;
+
+    let exportList = allExams;
+    if (selectedDate) exportList = exportList.filter(e => e.date === selectedDate);
+    if (selectedSubject) exportList = exportList.filter(e => e.subject === selectedSubject);
+    if (selectedCourse) exportList = exportList.filter(e => e.course === selectedCourse);
+
+    if (exportList.length === 0) {
+        alert("Không có dữ liệu để xuất 😅");
+        return;
+    }
+
+    const excelData = exportList.map((e, idx) => ({
+        "#": idx + 1,
+        "Môn học": e.subject,
+        "Tín chỉ": e.credits || "",
+        "Ngày thi": e.date,
+        "Giờ thi": e.time,
+        "Phòng": e.room,
+        "Khóa": e.course
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Lịch Thi");
+    ws['!cols'] = Object.keys(excelData[0]).map(() => ({ wch: 20 }));
+    XLSX.writeFile(wb, `lichthi_${Date.now()}.xlsx`);
+    alert("✅ Đã xuất file Excel Lịch Thi thành công!");
+});
+
+// --- Xóa lịch thi ---
+document.getElementById("exam-delete-btn").addEventListener("click", async function () {
+    // Lấy dữ liệu hiện đang hiển thị
+    const currentRows = Array.from(document.querySelectorAll("#exam-table-body tr"));
+    if (currentRows.length === 0) {
+        alert("Không có dữ liệu để xóa 😅");
+        return;
+    }
+
+    // Xác định đang lọc hay không
+    const filteredDate = document.getElementById("exam-filter-date").value;
+    const filteredCourse = document.getElementById("exam-filter-course").value;
+    const filteredSubject = document.getElementById("exam-filter-subject").value;
+
+    let examsToDelete = [];
+
+    if (filteredDate || filteredCourse || filteredSubject) {
+        // Nếu có lọc, chỉ xóa theo điều kiện lọc
+        examsToDelete = allExams.filter(e => {
+            return (!filteredDate || e.date === filteredDate) &&
+                   (!filteredCourse || e.course === filteredCourse) &&
+                   (!filteredSubject || e.subject === filteredSubject);
+        });
+    } else {
+        // Nếu không lọc, xóa tất cả
+        examsToDelete = allExams;
+    }
+
+    if (examsToDelete.length === 0) {
+        alert("Không có lịch thi phù hợp để xóa 😅");
+        return;
+    }
+
+    // Cảnh báo xác nhận
+    const confirmDelete = confirm(
+        filteredDate || filteredCourse || filteredSubject
+            ? `⚠ Bạn có chắc muốn xóa ${examsToDelete.length} môn thi này không?`
+            : `⚠ Bạn có chắc muốn xóa TOÀN BỘ lịch thi không?`
+    );
+
+    if (!confirmDelete) return;
+
+    // Gửi request xóa đến Flask
+    try {
+        const res = await fetch("/delete_exams", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ ids: examsToDelete.map(e => e.id) })
+        });
+        const result = await res.json();
+
+        if (result.success) {
+            alert("✅ Đã xóa thành công!");
+            // Cập nhật lại dữ liệu trên giao diện
+            fetchAllExams();
+        } else {
+            alert("❌ Xóa thất bại!");
+        }
+    } catch (err) {
+        console.error("Lỗi khi xóa:", err);
+        alert("⚠ Có lỗi khi xóa dữ liệu!");
+    }
+});
+
+
+// --- Load dữ liệu khi trang mở ---
+fetchAllExams();
+
+
+// --- Upload & Xử lý Ảnh Lịch Dạy ---
+const uploadAreaDay = document.getElementById('upload-area-day');
+const fileInputDay = document.getElementById('file-upload-day');
+const previewImageContainerDay = document.getElementById('preview-image-day');
+const imagePreviewDay = document.getElementById('image-preview-day');
+const resultAreaDay = document.getElementById('result-area-day');
+const scheduleDetailsDay = document.getElementById('schedule-details-day');
+const loadingSpinnerDay = document.getElementById('loading-spinner-day');
+
+// --- Upload & Xử lý Excel Lịch Dạy ---
+const uploadAreaDayExcel = document.getElementById('upload-area-day-excel');
+const fileInputDayExcel = document.getElementById('file-upload-day-excel');
+
+// Ngăn chặn hành vi mặc định khi kéo thả
+['dragenter','dragover','dragleave','drop'].forEach(ev => {
+    uploadAreaDay.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); });
+    uploadAreaDayExcel.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); });
+});
+
+// Hiệu ứng kéo thả
+['dragenter','dragover'].forEach(ev => {
+    uploadAreaDay.addEventListener(ev, () => uploadAreaDay.classList.add('is-dragover'));
+    uploadAreaDayExcel.addEventListener(ev, () => uploadAreaDayExcel.classList.add('is-dragover'));
+});
+['dragleave','drop'].forEach(ev => {
+    uploadAreaDay.addEventListener(ev, () => uploadAreaDay.classList.remove('is-dragover'));
+    uploadAreaDayExcel.addEventListener(ev, () => uploadAreaDayExcel.classList.remove('is-dragover'));
+});
+
+// Sự kiện click chọn file
+uploadAreaDay.addEventListener('click', () => fileInputDay.click());
+uploadAreaDayExcel.addEventListener('click', () => fileInputDayExcel.click());
+
+// Sự kiện khi chọn file
+fileInputDay.addEventListener('change', e => { const file = e.target.files[0]; if(file) handleFileDay(file, 'image'); });
+fileInputDayExcel.addEventListener('change', e => { const file = e.target.files[0]; if(file) handleFileDay(file, 'excel'); });
+
+// Sự kiện thả file vào vùng upload
+uploadAreaDay.addEventListener('drop', e => { const file = e.dataTransfer.files[0]; if(file) handleFileDay(file, 'image'); });
+uploadAreaDayExcel.addEventListener('drop', e => { const file = e.dataTransfer.files[0]; if(file) handleFileDay(file, 'excel'); });
+
+// --- Hàm xử lý file (ảnh hoặc excel) ---
+function handleFileDay(file, type){
+    resultAreaDay.style.display = 'none';
+    loadingSpinnerDay.style.display = 'block';
+
+    // Nếu là ảnh thì hiển thị preview
+    if(type === 'image'){
+        const reader = new FileReader();
+        reader.onload = e => {
+            imagePreviewDay.src = e.target.result;
+            previewImageContainerDay.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        previewImageContainerDay.style.display = 'none';
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const endpoint = type === 'image' ? '/process_image_day' : '/process_excel_day';
+
+    fetch(endpoint, { method: 'POST', body: formData })
+    .then(res => res.json())
+    .then(data => { 
+        loadingSpinnerDay.style.display = 'none'; 
+        showResultDay(data); 
+        fetchAllTeachSchedules();
+    })
+    .catch(err => {
+        loadingSpinnerDay.style.display = 'none';
+        console.error(err);
+        scheduleDetailsDay.innerHTML = `<div class="alert alert-danger">Đã có lỗi xảy ra. Vui lòng thử lại sau.</div>`;
+        resultAreaDay.style.display = 'block';
+    });
+}
+
+// --- Hiển thị kết quả lịch dạy ---
+function showResultDay(data){
+    scheduleDetailsDay.innerHTML = '';
+    if(!data || !data.schedule || data.schedule.length === 0){
+        scheduleDetailsDay.innerHTML = `<div class="alert alert-warning">Không thể trích xuất thông tin. Vui lòng thử lại.</div>`;
+        resultAreaDay.style.display = 'block';
+        return;
+    }
+
+    let html = `
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr class="table-success">
+                <th>Thứ</th>
+                <th>Ngày</th>
+                <th>Khóa</th>
+                <th>Nhóm</th>
+                <th>Môn học</th>
+                <th>Giảng viên</th>
+                <th>Tiết</th>
+                <th>Phòng</th>
+            </tr>
+        </thead>
+        <tbody>`;
+    data.schedule.forEach(item=>{
+        html += `<tr>
+            <td>${item.day || 'N/A'}</td>
+            <td>${item.date || 'N/A'}</td>
+            <td>${item.course || 'N/A'}</td>
+            <td>${item.group || 'N/A'}</td>
+            <td>${item.subject || 'N/A'}</td>
+            <td>${item.teacher || 'N/A'}</td>
+            <td>${item.sessions || 'N/A'}</td>
+            <td>${item.room || 'N/A'}</td>
+        </tr>`;
+    });
+    html += '</tbody></table>';
+    scheduleDetailsDay.innerHTML = html;
+    resultAreaDay.style.display = 'block';
+}
+
+// --- Bộ lọc ---
+const filterDateDay = document.getElementById('teach-filter-date');
+const filterSubjectDay = document.getElementById('teach-filter-subject');
+const filterTeacherDay = document.getElementById('teach-filter-teacher');
+const filterRoomDay = document.getElementById('teach-filter-room');
+const filterBtnDay = document.getElementById('teach-filter-btn');
+const showAllBtnDay = document.getElementById('teach-show-all-btn');
+const teachSchedule = document.getElementById('teach-schedule');
+
+let allTeachSchedules = [];
+
+function fetchAllTeachSchedules(){
+    fetch('/get_all_teach_schedules')
+    .then(res=>res.json())
+    .then(data=>{
+        allTeachSchedules = data;
+        populateTeachFilters();
+        renderTeachSchedule(allTeachSchedules);
+    })
+    .catch(err=>console.error(err));
+}
+fetchAllTeachSchedules();
+
+function populateTeachFilters(){
+    const subjectSet = new Set();
+    const teacherSet = new Set();
+    const roomSet = new Set();
+
+    allTeachSchedules.forEach(s=>{
+        if(s.subject) subjectSet.add(s.subject);
+        if(s.teacher) teacherSet.add(s.teacher);
+        if(s.room) roomSet.add(s.room);
+    });
+
+    filterSubjectDay.innerHTML = `<option value="">-- Môn dạy --</option>`;
+    filterTeacherDay.innerHTML = `<option value="">-- Giáo viên --</option>`;
+    filterRoomDay.innerHTML = `<option value="">-- Phòng --</option>`;
+
+    subjectSet.forEach(sub=> filterSubjectDay.innerHTML += `<option value="${sub}">${sub}</option>`);
+    teacherSet.forEach(t=> filterTeacherDay.innerHTML += `<option value="${t}">${t}</option>`);
+    roomSet.forEach(r=> filterRoomDay.innerHTML += `<option value="${r}">${r}</option>`);
+}
+
+function formatDateToDMY(dateStr){
+    if(!dateStr) return "";
+    const d = new Date(dateStr);
+    const day = String(d.getDate()).padStart(2,'0');
+    const month = String(d.getMonth()+1).padStart(2,'0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+// --- Lọc ---
+filterBtnDay.addEventListener('click', ()=>{
+    const selectedDate = formatDateToDMY(filterDateDay.value); // đổi sang DD/MM/YYYY
+    const selectedSubject = filterSubjectDay.value;
+    const selectedTeacher = filterTeacherDay.value;
+    const selectedRoom = filterRoomDay.value;
+
+    let filtered = allTeachSchedules;
+    if(selectedDate) filtered = filtered.filter(s=>s.date === selectedDate);
+    if(selectedSubject) filtered = filtered.filter(s=>s.subject === selectedSubject);
+    if(selectedTeacher) filtered = filtered.filter(s=>s.teacher === selectedTeacher);
+    if(selectedRoom) filtered = filtered.filter(s=>s.room === selectedRoom);
+
+    renderTeachSchedule(filtered);
+});
+
+showAllBtnDay.addEventListener('click', ()=>renderTeachSchedule(allTeachSchedules));
+
+// --- Hiển thị Accordion Lịch Dạy ---
+function renderTeachSchedule(list){
+    if(list.length===0){
+        teachSchedule.innerHTML='<p class="text-center text-muted">Không có lịch dạy nào 👩‍🏫</p>';
+        return;
+    }
+    let html='';
+    list.forEach(item=>{
+        html+=`
+        <div class="accordion-item">
+            <h2 class="accordion-header" id="headingTeach${item.id}">
+                <button class="accordion-button collapsed" type="button" 
+                    data-bs-toggle="collapse" 
+                    data-bs-target="#collapseTeach${item.id}" 
+                    aria-expanded="false" 
+                    aria-controls="collapseTeach${item.id}">
+                    ${item.subject} - ${item.teacher} (${item.day}, ${item.date})
+                </button>
+            </h2>
+            <div id="collapseTeach${item.id}" class="accordion-collapse collapse" aria-labelledby="headingTeach${item.id}" data-bs-parent="#teach-schedule">
+                <div class="accordion-body">
+                    <p><strong>Thứ:</strong> ${item.day}</p>
+                    <p><strong>Ngày:</strong> ${item.date}</p>
+                    <p><strong>Khóa:</strong> ${item.course}</p>
+                    <p><strong>Nhóm:</strong> ${item.group}</p>
+                    <p><strong>Môn học:</strong> ${item.subject}</p>
+                    <p><strong>Giảng viên:</strong> ${item.teacher}</p>
+                    <p><strong>Tiết:</strong> ${item.sessions}</p>
+                    <p><strong>Phòng:</strong> ${item.room}</p>
+                </div>
+            </div>
+        </div>`;
+    });
+    teachSchedule.innerHTML = html;
+}
+// --- Sắp xếp ---
+document.getElementById("teach-sort-btn").addEventListener("click", function() {
+    allTeachSchedules.sort((a,b)=>{
+        if(a.date < b.date) return -1;
+        if(a.date > b.date) return 1;
+        return a.day.localeCompare(b.day);
+    });
+    renderTeachSchedule(allTeachSchedules);
+});
+
+// --- Xuất Excel (Lịch Dạy) ---
+document.getElementById("teach-export-btn").addEventListener("click", function () {
+    // Lấy giá trị filter hiện tại
+    const selectedDate = filterDateDay.value;
+    const selectedSubject = filterSubjectDay.value;
+    const selectedTeacher = filterTeacherDay.value;
+    const selectedRoom = filterRoomDay.value;
+
+    let exportList = allTeachSchedules; // default là toàn bộ
+
+    // Lọc dữ liệu nếu có chọn filter
+    if (selectedDate) exportList = exportList.filter(s => s.date === selectedDate);
+    if (selectedSubject) exportList = exportList.filter(s => s.subject === selectedSubject);
+    if (selectedTeacher) exportList = exportList.filter(s => s.teacher === selectedTeacher);
+    if (selectedRoom) exportList = exportList.filter(s => s.room === selectedRoom);
+
+    if (exportList.length === 0) {
+        alert("Không có dữ liệu để xuất 😅");
+        return;
+    }
+
+    // Chuẩn bị dữ liệu cho Excel
+    const excelData = exportList.map(s => ({
+        "Thứ": s.day || "",
+        "Ngày": s.date || "",
+        "Khóa": s.course || "",
+        "Nhóm": s.group || "",
+        "Môn học": s.subject || "",
+        "Giảng viên": s.teacher || "",
+        "Tiết": s.sessions || "",
+        "Phòng": s.room || ""
+    }));
+
+    // Tạo sheet & workbook
+    const ws = XLSX.utils.json_to_sheet(excelData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Lịch Dạy");
+
+    // Tự động căn cột
+    ws['!cols'] = Object.keys(excelData[0]).map(() => ({ wch: 20 }));
+
+    // Tên file khác nhau nếu có filter
+    const fileName = (selectedDate || selectedSubject || selectedTeacher || selectedRoom)
+        ? `lichday_filtered_${Date.now()}.xlsx`
+        : `lichday_full_${Date.now()}.xlsx`;
+
+    XLSX.writeFile(wb, fileName);
+    alert("✅ Đã xuất file Excel Lịch Dạy thành công!");
+});
+
 
 </script>
 </body>

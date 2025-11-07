@@ -1,0 +1,38 @@
+[
+  {
+    "day": "Thứ Năm",
+    "date": "23/10/2025",
+    "course": "K24",
+    "group": "B",
+    "subject": "Lập trình Java nâng cao",
+    "teacher": "ThS. Nguyễn Hữu Thể",
+    "sessions": "12345",
+    "room": "404",
+    "id": 1,
+    "username": "nhi"
+  },
+  {
+    "day": "Thứ Sáu",
+    "date": "24/10/2025",
+    "course": "K24",
+    "group": "A",
+    "subject": "Lập trình Java nâng cao",
+    "teacher": "ThS. Nguyễn Hữu Thể",
+    "sessions": "12345",
+    "room": "F4",
+    "id": 2,
+    "username": "nhi"
+  },
+  {
+    "day": "Thứ Bảy",
+    "date": "25/10/2025",
+    "course": "K24",
+    "group": "NaN",
+    "subject": "Thương mại điện tử",
+    "teacher": "TS. Trần Sơn Hải",
+    "sessions": "12345",
+    "room": "F7",
+    "id": 3,
+    "username": "nhi"
+  }
+]

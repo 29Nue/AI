@@ -1054,13 +1054,13 @@ def ai_schedule_page():
 
 SCHEDULE_FILE = "data/scheduleNew.json"
 
-def load_schedules():
+def load_student_schedules():
     if os.path.exists(SCHEDULE_FILE):
         with open(SCHEDULE_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     return []
 
-def save_schedules(data):
+def save_student_schedules(data):
     with open(SCHEDULE_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
@@ -1068,7 +1068,7 @@ def save_schedules(data):
 @app.route('/get_all_schedules')
 def get_all_schedules():
     username = request.args.get('username') or session.get('username')
-    schedules = load_schedules()
+    schedules = load_student_schedules()
     if username:
         # chỉ trả lịch của user đó
         schedules = [s for s in schedules if s.get('username') == username]
@@ -1085,7 +1085,7 @@ def mark_complete(schedule_id):
         body = {}
     username = body.get('username') or request.form.get('username') or session.get('username')
 
-    schedules = load_schedules()
+    schedules = load_student_schedules()
     updated = False
     for s in schedules:
         if s.get("id") == schedule_id:
@@ -1098,7 +1098,7 @@ def mark_complete(schedule_id):
             break
 
     if updated:
-        save_schedules(schedules)
+        save_student_schedules(schedules)
         return jsonify({"success": True})
     else:
         return jsonify({"error": "Không tìm thấy lịch"}), 404
@@ -1112,7 +1112,7 @@ def delete_schedule(schedule_id):
         body = {}
     username = body.get('username') or request.form.get('username') or session.get('username')
 
-    schedules = load_schedules()
+    schedules = load_student_schedules()
     target = None
     for s in schedules:
         if s.get("id") == schedule_id:
@@ -1128,7 +1128,7 @@ def delete_schedule(schedule_id):
 
     # xóa thật
     schedules = [s for s in schedules if s.get("id") != schedule_id]
-    save_schedules(schedules)
+    save_student_schedules(schedules)
     return jsonify({"success": True})
 
 # Route xử lý ảnh và append vào JSON
@@ -1145,7 +1145,7 @@ def process_image_route():
 
     schedule_data = ai_generate_schedule(file)
     if schedule_data:
-        schedules = load_schedules()
+        schedules = load_student_schedules()
         max_id = max([s.get("id", 0) for s in schedules], default=0)
         for item in schedule_data.get("schedule", []):
             max_id += 1
@@ -1164,7 +1164,7 @@ def process_image_route():
                 item.pop("group", None)
 
         schedules.extend(schedule_data.get("schedule", []))
-        save_schedules(schedules)
+        save_student_schedules(schedules)
         return jsonify(schedule_data)
     else:
         return jsonify({"error": "Không thể xử lý ảnh. Vui lòng thử lại"}), 500
@@ -1299,7 +1299,7 @@ def get_date_for_weekday(start_date_str, weekday_name):
 @app.route('/get_sorted_schedules')
 def get_sorted_schedules():
     username = request.args.get('username') or session.get('username')
-    schedules = load_schedules()
+    schedules = load_student_schedules()
     if username:
         schedules = [s for s in schedules if s.get('username') == username]
 
@@ -1367,32 +1367,31 @@ def get_all_exams():
         exams = [e for e in exams if e.get('username') == username]
     return jsonify(exams)
 
-# ---- Route xoá lịch thi ----
-@app.route('/delete_exam/<int:exam_id>', methods=['POST'])
-def delete_exam(exam_id):
+@app.route('/delete_exams', methods=['POST'])
+def delete_exams():
     try:
-        body = request.get_json(force=False) or {}
-    except Exception:
-        body = {}
-    username = body.get('username') or request.form.get('username') or session.get('username')
+        data = request.get_json(force=True)
+    except Exception as e:
+        return jsonify({"error": "Request JSON không hợp lệ", "detail": str(e)}), 400
 
-    exams = load_exams()
-    target = None
-    for e in exams:
-        if e.get("id") == exam_id:
-            target = e
-            break
+    ids = data.get('ids')
+    if not isinstance(ids, list) or not ids:
+        return jsonify({"error": "Cần gửi danh sách 'ids' (mảng) để xóa"}), 400
 
-    if not target:
-        return jsonify({"error": "Không tìm thấy lịch thi"}), 404
+    try:
+        exams = load_exams()  # Đọc từ file JSON
+    except Exception as e:
+        return jsonify({"error": "Không thể đọc dữ liệu trên server", "detail": str(e)}), 500
 
-    owner = target.get("username")
-    if owner and username and owner != username:
-        return jsonify({"error": "Không có quyền xóa lịch thi này"}), 403
+    # Xóa các exam có id nằm trong danh sách ids
+    remaining = [exam for exam in exams if exam.get('id') not in ids]
 
-    exams = [e for e in exams if e.get("id") != exam_id]
-    save_exams(exams)
-    return jsonify({"success": True})
+    try:
+        save_exams(remaining)  # Lưu lại file JSON
+        return jsonify({"success": True, "deleted_count": len(exams) - len(remaining)}), 200
+    except Exception as e:
+        return jsonify({"error": "Không thể lưu dữ liệu sau khi xóa", "detail": str(e)}), 500
+
 
 # ---- Route xử lý ảnh và append vào JSON ----
 @app.route('/process_exam_image', methods=['POST'])
@@ -1441,89 +1440,350 @@ def ai_generate_exam_schedule(image_file):
         img = Image.open(io.BytesIO(image_file.read()))
         
         prompt = """
-        Phân tích hình ảnh lịch thi này và trích xuất thông tin sau cho từng môn thi:
-        1. Tên môn học.
-        2. Ngày thi (dd/mm/yyyy).
-        3. Giờ thi (ví dụ: 7:30).
-        4. Phòng thi.
-        5. Số tín chỉ của môn học (nếu có).
+            Phân tích hình ảnh lịch thi này và trích xuất thông tin sau cho từng môn thi:
+            1. Tên môn học.
+            2. Ngày thi (dd/mm/yyyy).
+            3. Giờ thi. (Ví dụ: 13:00)
+            4. Phòng thi.
+            5. Số tín chỉ.
+            6. Khóa học (ví dụ: Khóa 24).
 
-        Quy tắc trích xuất và kế thừa thông tin:
-        - Nếu trong bảng, một cụm nhiều môn học nằm liền kề theo hàng, nhưng ngày/giờ/phòng chỉ ghi ở **hàng đầu tiên**, thì các môn phía dưới **phải kế thừa** đầy đủ ngày, giờ, phòng từ hàng đầu tiên của cụm đó.
-        - **TUYỆT ĐỐI KHÔNG** để trống hoặc điền null.
-        - **CHỈ** điền "N/A" cho một trường thông tin khi và chỉ khi nó không được đề cập ở bất kỳ đâu, bao gồm cả các hàng phía trên trong cùng một cụm.
-        
-        Mỗi môn thi là một đối tượng JSON riêng, ngay cả khi chung ngày/giờ/phòng.
+            Quy tắc kế thừa và xử lý:
+            - Nếu một ô trong cột “Ngày thi” hoặc “Giờ thi” được hợp nhất (merge) cho nhiều dòng bên dưới, thì các dòng đó **phải kế thừa giá trị** từ ô hợp nhất.
+            - Nếu các ô không có đường kẻ ngăn cách hoặc bị bỏ trống nhưng nằm cùng cụm dọc, coi như **chung giá trị với ô gần nhất phía trên trong cùng cột**.
+            - Nếu trong cột “Ngày thi” của một dòng bị trống, **dùng lại ngày của môn phía trên** cho đến khi gặp một ô ngày mới.
+            - Không để trống hay null trong kết quả.
+            - Chỉ ghi "N/A" nếu không thể suy ra được dù đã áp dụng kế thừa.
 
-        Xuất kết quả dưới định dạng JSON như sau:
-        
-        {
-        "exam_info": "Thông tin kỳ thi (nếu có, ví dụ: kỳ thi học kỳ 1, năm học 2025)",
-        "exams": [
+            Kết quả trả về ở định dạng JSON chuẩn, ví dụ:
+
             {
-            "subject": "Tên môn học",
-            "date": "Ngày thi",
-            "time": "Giờ thi",
-            "room": "Phòng thi",
-            "credits": "Số tín chỉ"
+            "exam_info": "Thông tin kỳ thi (nếu có, ví dụ: Kỳ thi học kỳ 1, năm học 2025)",
+            "exams": [
+                {
+                "subject": "Tên môn học",
+                "date": "dd/mm/yyyy",
+                "time": "Giờ thi",
+                "room": "Phòng thi",
+                "credits": "Số tín chỉ",
+                "course": "Khóa"
+                }
+            ]
             }
-        ]
-        }
-        """
-        model = genai.GenerativeModel("gemini-1.5-flash")
+            """
+        model = genai.GenerativeModel("gemini-2.5-flash")
         response = model.generate_content([prompt, img])
         content = response.text.strip()
         
         match = re.search(r"\{.*\}", content, re.DOTALL)
         if match:
-            json_string = match.group(0)
-            try:
-                exam_data = json.loads(json_string)
-                exams = exam_data.get("exams", [])
-                
-                # Logic xử lý hậu kỳ để kế thừa dữ liệu
-                last_valid_date = None
-                last_valid_time = None
-                last_valid_room = None
-                
-                for item in exams:
-                    # Cập nhật giá trị hợp lệ cuối cùng cho các cột
-                    if item.get("date") not in ["N/A", "", None]:
-                        last_valid_date = item.get("date")
-                    
-                    if item.get("time") not in ["N/A", "", None]:
-                        last_valid_time = item.get("time")
-                    
-                    if item.get("room") not in ["N/A", "", None]:
-                        last_valid_room = item.get("room")
-                
-                # Sau khi có các giá trị hợp lệ cuối cùng, duyệt lại để điền vào các trường bị thiếu
-                for item in exams:
-                    if item.get("date") in ["N/A", "", None]:
-                        item["date"] = last_valid_date if last_valid_date else "N/A"
-                    
-                    if item.get("time") in ["N/A", "", None]:
-                        item["time"] = last_valid_time if last_valid_time else "N/A"
-                        
-                    if item.get("room") in ["N/A", "", None]:
-                        item["room"] = last_valid_room if last_valid_room else "N/A"
+           json_string = match.group(0)
+        try:
+            exam_data = json.loads(json_string)
+            exams = exam_data.get("exams", [])
 
-                    item.setdefault("credits", "N/A")
+            # Logic xử lý hậu kỳ để kế thừa dữ liệu
+            last_valid_date = None
+            last_valid_time = None
+            last_valid_room = None
+            last_valid_course = None  # thêm course
 
-                return exam_data
+            for item in exams:
+                if item.get("date") not in ["N/A", "", None]:
+                    last_valid_date = item.get("date")
+                if item.get("time") not in ["N/A", "", None]:
+                    last_valid_time = item.get("time")
+                if item.get("room") not in ["N/A", "", None]:
+                    last_valid_room = item.get("room")
+                if item.get("course") not in ["N/A", "", None]:
+                    last_valid_course = item.get("course")  # cập nhật course hợp lệ
 
-            except json.JSONDecodeError as e:
-                print(f"Lỗi JSONDecodeError: {e}")
-                print(f"Chuỗi JSON bị lỗi: {json_string}")
-                return None
+            # Duyệt lại để điền vào các trường bị thiếu
+            for item in exams:
+                if item.get("date") in ["N/A", "", None]:
+                    item["date"] = last_valid_date if last_valid_date else "N/A"
+                if item.get("time") in ["N/A", "", None]:
+                    item["time"] = last_valid_time if last_valid_time else "N/A"
+                if item.get("room") in ["N/A", "", None]:
+                    item["room"] = last_valid_room if last_valid_room else "N/A"
+                if item.get("course") in ["N/A", "", None]:
+                    item["course"] = last_valid_course if last_valid_course else "N/A"
+
+                item.setdefault("credits", "N/A")
+            return exam_data
+
+        except json.JSONDecodeError as e:
+            print(f"Lỗi JSONDecodeError: {e}")
+            print(f"Chuỗi JSON bị lỗi: {json_string}")
+            return None
 
     except Exception as e:
         print(f"Lỗi xử lý ảnh lịch thi: {e}")
         return None
+    
+# Lịch dạy     
+TEACH_FILE = "data/teachSchedule.json"
+
+def load_teach_schedules():
+    if os.path.exists(TEACH_FILE):
+        with open(TEACH_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+def save_teach_schedules(data):
+    with open(TEACH_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+@app.route('/get_all_teach_schedules')
+def get_all_teach_schedules():
+    username = request.args.get('username') or session.get('username')
+    schedules = load_teach_schedules()
+    if username:
+        schedules = [s for s in schedules if s.get('username') == username]
+    return jsonify(schedules)
+
+# Xử lý ảnh để tạo lịch dạy
+@app.route('/process_image_day', methods=['POST'])
+def process_image_day():
+    if 'file' not in request.files:
+        return jsonify({"error": "Không tìm thấy file ảnh"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "File không hợp lệ"}), 400
+
+    username = request.form.get('username') or session.get('username')
+    schedule_data = ai_generate_teach_schedule(file)
+
+    if schedule_data:
+        schedules = load_teach_schedules()
+        max_id = max([s.get("id", 0) for s in schedules], default=0)
+
+        for item in schedule_data.get("schedule", []):
+            max_id += 1
+            item["id"] = max_id
+            item["username"] = username if username else "public"
+
+            # Nếu không có ngày => tính theo thứ
+            if "date" not in item or not item["date"] or item["date"] == "N/A":
+                item["date"] = get_date_for_weekday(schedule_data.get("start_date", "N/A"), item.get("day", ""))
+
+        schedules.extend(schedule_data.get("schedule", []))
+        save_teach_schedules(schedules)
+        return jsonify(schedule_data)
+    else:
+        return jsonify({"error": "Không thể xử lý ảnh. Vui lòng thử lại"}), 500
+
+# Trích xuất thông tin từ ảnh lịch dạy bằng AI
+def ai_generate_teach_schedule(image_file):
+    try:
+        img = Image.open(io.BytesIO(image_file.read()))
+
+        prompt = """
+        Phân tích hình ảnh lịch dạy này và trích xuất chính xác các thông tin sau:
+
+        1. Thứ (Thứ Hai, Thứ Ba, …)
+        2. Ngày (dd/mm/yyyy)
+        3. Khóa (ví dụ: K21, K22)
+        4. Nhóm
+        5. Môn học - Học phần
+        6. Giảng viên
+        7. Tiết học (ví dụ: 12345)
+        8. Phòng học
+
+        Dựa vào bảng quy ước tiết học, tính thời gian tương ứng như sau:
+        - Tiết 1: 7:30-8:20
+        - Tiết 2: 8:20-9:10
+        - Tiết 3: 9:10-10:00
+        - Tiết 4: 10:10-11:00
+        - Tiết 5: 11:00-11:50
+        - Tiết 6: 13:00-13:50
+        - Tiết 7: 13:50-14:40
+        - Tiết 8: 14:40-15:30
+        - Tiết 9: 15:40-16:30
+        - Tiết 10: 16:30-17:20
+
+        Với chuỗi tiết học, chỉ lấy giờ bắt đầu của tiết đầu và giờ kết thúc của tiết cuối.
+
+        Xuất kết quả dưới dạng JSON:
+        {
+            "start_date": "Ngày bắt đầu",
+            "schedule": [
+                {
+                    "day": "Thứ Hai",
+                    "date": "03/03/2025",
+                    "course": "K22",
+                    "group": "N1",
+                    "subject": "Lập trình Web - 12345",
+                    "teacher": "Nguyễn Văn A",
+                    "sessions": "678",
+                    "time": "13:00-15:30",
+                    "room": "A204"
+                }
+            ]
+        }
+        """
+
+        model = genai.GenerativeModel("gemini-2.5-flash")
+        response = model.generate_content([prompt, img])
+        content = response.text.strip()
+
+        match = re.search(r"\{.*\}", content, re.DOTALL)
+        if match:
+            json_string = match.group(0)
+            try:
+                schedule_data = json.loads(json_string)
+
+                for item in schedule_data.get("schedule", []):
+                    item["date"] = get_date_for_weekday(schedule_data.get("start_date", "N/A"), item.get("day", ""))
+
+                return schedule_data
+            except json.JSONDecodeError as e:
+                print("❌ JSONDecodeError:", e)
+                print("Dữ liệu JSON lỗi:", json_string)
+                return None
+    except Exception as e:
+        print("❌ Lỗi xử lý ảnh:", e)
+        return None
+    
+# Excel    
+@app.route('/process_excel_day', methods=['POST'])
+def process_excel_day():
+    if 'file' not in request.files:
+        return jsonify({"error": "Không tìm thấy file Excel"}), 400
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"error": "File không hợp lệ"}), 400
+
+    try:
+        # **ĐIỀU CHỈNH QUAN TRỌNG:** Đọc toàn bộ file thành bytes một lần duy nhất
+        excel_bytes = file.read() 
+        
+        # 1. Tích hợp AI để trích xuất dữ liệu từ file Excel
+        # Truyền dữ liệu dạng bytes (thay vì đối tượng file)
+        schedule_data = ai_generate_teach_schedule_from_excel(excel_bytes) 
+        
+        if not schedule_data:
+            return jsonify({"error": "AI không thể trích xuất lịch dạy từ file Excel"}), 500
+
+        # 2. Xử lý lưu trữ (Giống phần ảnh)
+        username = request.form.get('username') or session.get('username')
+        schedules = load_teach_schedules()
+        
+        # Logic gán ID và username 
+        max_id = max([s.get("id", 0) for s in schedules], default=0)
+        for item in schedule_data["schedule"]:
+            max_id += 1
+            item["id"] = max_id
+            item["username"] = username if username else "public"
+            
+            # Gán ngày nếu trống (giống như logic trong process_image_day)
+            if "date" not in item or not item["date"] or item["date"] == "N/A":
+                item["date"] = get_date_for_weekday(schedule_data.get("start_date", "N/A"), item.get("day", ""))
+
+        schedules.extend(schedule_data["schedule"])
+        save_teach_schedules(schedules)
+
+        return jsonify(schedule_data)
+
+    except Exception as e:
+        print("❌ Lỗi xử lý Excel:", e)
+        return jsonify({"error": f"Lỗi khi xử lý file Excel: {str(e)}"}), 500
+    
+# Trích xuất thông tin từ file Excel bằng AI
+def ai_generate_teach_schedule_from_excel(excel_bytes):
+    try:
+        import pandas as pd
+        import json, re
+        from io import BytesIO
+        import google.generativeai as genai
+
+        df = pd.read_excel(BytesIO(excel_bytes), header=None)
+        text_preview = df.to_string(index=False, header=False)
+
+        prompt = f"""
+        Phân tích nội dung dưới đây — đây là dữ liệu bảng lịch dạy xuất từ Excel (có thể bị lệch dòng, merge ô, hoặc tiêu đề không chuẩn):
+        
+        {text_preview}
+        
+        Trích xuất và trả về kết quả dưới dạng JSON hợp lệ.
+        JSON chỉ được dùng **tên biến bằng tiếng Anh**, nhưng **giữ nguyên nội dung tiếng Việt** trong giá trị.
+        
+        Cấu trúc JSON bắt buộc như sau:
+        [
+          {{
+            "day": "Thứ Năm",
+            "date": "23/10/2025",
+            "course": "K24",
+            "group": "B",
+            "subject": "Lập trình Java nâng cao",
+            "teacher": "ThS. Nguyễn Hữu Thế",
+            "sessions": "12345",
+            "room": "404"
+          }}
+        ]
+        
+        Không được thêm giải thích, markdown, hay ký hiệu ```json.
+        Chỉ trả về JSON hợp lệ.
+        """
+
+        model = genai.GenerativeModel("gemini-2.5-flash")
+        response = model.generate_content(prompt)
+        content = response.text.strip()
+        content_cleaned = content.replace("```json", "").replace("```", "").strip()
+
+        # Tìm mảng JSON hợp lệ
+        match = re.search(r"\[.*\]", content_cleaned, re.DOTALL)
+        json_string = match.group(0) if match else content_cleaned
+
+        schedule_list = json.loads(json_string)
+        schedule_data = {
+            "start_date": schedule_list[0].get("date", "N/A") if schedule_list else "N/A",
+            "schedule": schedule_list
+        }
+
+        return schedule_data
+
+    except Exception as e:
+        print("❌ Lỗi đọc Excel hoặc phân tích AI:", e)
+        return None
+
+@app.route('/get_sorted_teach_schedules')
+def get_sorted_teach_schedules():
+    username = request.args.get('username') or session.get('username')
+    schedules = load_teach_schedules()
+    if username:
+        schedules = [s for s in schedules if s.get('username') == username]
+
+    from datetime import datetime
+
+    def parse_date_safe(d):
+        if not d or d == "N/A":
+            return datetime.max
+        try:
+            if "-" in d:
+                return datetime.strptime(d.strip(), "%Y-%m-%d")
+            return datetime.strptime(d.strip(), "%d/%m/%Y")
+        except:
+            return datetime.max
+
+    def parse_time_safe(t):
+        if not t or t == "N/A":
+            return datetime.min
+        try:
+            start = str(t).split("-")[0].strip()
+            if re.match(r"^\d:\d{2}$", start):
+                start = "0" + start
+            return datetime.strptime(start, "%H:%M")
+        except:
+            return datetime.min
+
+    schedules.sort(key=lambda s: (parse_date_safe(s.get("date")), parse_time_safe(s.get("time"))))
+    return jsonify(schedules)
+    
 #######
-#if __name__ == "__main__":
-#     app.run(debug=True) 
 if __name__ == "__main__":
-   port = int(os.environ.get("PORT", 5000))
-   app.run(host="0.0.0.0", port=port)
+     app.run(debug=True) 
+#if __name__ == "__main__":
+ #  port = int(os.environ.get("PORT", 5000))
+  # app.run(host="0.0.0.0", port=port)
 
