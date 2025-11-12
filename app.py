@@ -1541,6 +1541,30 @@ def get_all_teach_schedules():
         schedules = [s for s in schedules if s.get('username') == username]
     return jsonify(schedules)
 
+@app.route('/delete_teach_schedules', methods=['POST'])
+def delete_teach_schedules():
+    try:
+        data = request.get_json(force=True)
+        ids = data.get('ids', [])
+        if not ids:
+            return jsonify({"success": False, "error": "Không có ID để xóa"}), 400
+
+        schedules = load_teach_schedules()
+        # Lọc lại các lịch không bị xóa
+        remaining = [s for s in schedules if s.get('id') not in ids]
+        save_teach_schedules(remaining)
+
+        return jsonify({
+            "success": True,
+            "deleted_count": len(schedules) - len(remaining)
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
 # Xử lý ảnh để tạo lịch dạy
 @app.route('/process_image_day', methods=['POST'])
 def process_image_day():

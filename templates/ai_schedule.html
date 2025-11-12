@@ -308,6 +308,7 @@
             <button id="teach-export-btn" type="button" class="btn btn-outline-success">
                 <i class="bi bi-file-earmark-excel"></i> Xuất Excel
             </button>
+            <button id="teach-delete-btn" class="btn btn-danger">Xóa</button>
         </div>
 
         <!-- Bảng hiển thị thông tin lịch dạy -->
@@ -874,7 +875,6 @@ document.getElementById("exam-delete-btn").addEventListener("click", async funct
 fetchAllExams();
 
 
-// --- DOM Elements ---
 const uploadAreaDay = document.getElementById('upload-area-day');
 const fileInputDay = document.getElementById('file-upload-day');
 const previewImageContainerDay = document.getElementById('preview-image-day');
@@ -895,6 +895,7 @@ const filterBtnDay = document.getElementById('teach-filter-btn');
 const showAllBtnDay = document.getElementById('teach-show-all-btn');
 const sortBtnDay = document.getElementById('teach-sort-btn');
 const exportBtnDay = document.getElementById('teach-export-btn');
+const deleteBtnDay = document.getElementById('teach-delete-btn');
 
 let allTeachSchedules = [];
 
@@ -956,30 +957,19 @@ function handleFileDay(file,type){
     });
 }
 
-// --- Hiển thị bảng ---
+// --- Hiển thị kết quả ---
 function showResultDay(data){
     scheduleDetailsDay.innerHTML = '';
     if(!data || !data.schedule || data.schedule.length===0){
-        scheduleDetailsDay.innerHTML = `<div class="alert alert-warning text-center">Không có dữ liệu 👩‍🏫</div>`;
-        resultAreaDay.style.display='block';
+        scheduleDetailsDay.innerHTML='<div class="text-center text-muted">Không có lịch dạy nào 👩‍🏫</div>';
         return;
     }
 
-    let html = `<table class="table table-striped table-hover">
-        <thead>
-            <tr class="table-success">
-                <th>Thứ</th>
-                <th>Ngày</th>
-                <th>Khóa</th>
-                <th>Nhóm</th>
-                <th>Môn học</th>
-                <th>Giảng viên</th>
-                <th>Tiết</th>
-                <th>Phòng</th>
-            </tr>
-        </thead>
-        <tbody>`;
-    
+    let html = `<table class="table table-striped table-hover"><thead>
+        <tr class="table-success">
+            <th>Thứ</th><th>Ngày</th><th>Khóa</th><th>Nhóm</th>
+            <th>Môn học</th><th>Giảng viên</th><th>Tiết</th><th>Phòng</th>
+        </tr></thead><tbody>`;
     data.schedule.forEach(item=>{
         html += `<tr>
             <td>${item.day||'N/A'}</td>
@@ -992,34 +982,24 @@ function showResultDay(data){
             <td>${item.room||'N/A'}</td>
         </tr>`;
     });
-
-    html += `</tbody></table>`;
+    html += '</tbody></table>';
     scheduleDetailsDay.innerHTML = html;
     resultAreaDay.style.display='block';
 }
 
 // --- Populate filters ---
 function populateTeachFilters(){
-    const subjectSet = new Set();
-    const teacherSet = new Set();
-    const roomSet = new Set();
-    const courseSet = new Set();
+    const subjects = new Set(), teachers = new Set(), rooms = new Set(), courses = new Set();
     allTeachSchedules.forEach(s=>{
-        if(s.subject) subjectSet.add(s.subject);
-        if(s.teacher) teacherSet.add(s.teacher);
-        if(s.room) roomSet.add(s.room);
-        if(s.course) courseSet.add(s.course);
+        if(s.subject) subjects.add(s.subject);
+        if(s.teacher) teachers.add(s.teacher);
+        if(s.room) rooms.add(s.room);
+        if(s.course) courses.add(s.course);
     });
-
-    filterSubjectDay.innerHTML = `<option value="">-- Môn dạy --</option>`;
-    filterTeacherDay.innerHTML = `<option value="">-- Giáo viên --</option>`;
-    filterRoomDay.innerHTML = `<option value="">-- Phòng --</option>`;
-    filterCourseDay.innerHTML = `<option value="">-- Khóa --</option>`;
-
-    subjectSet.forEach(s=> filterSubjectDay.innerHTML+=`<option value="${s}">${s}</option>`);
-    teacherSet.forEach(t=> filterTeacherDay.innerHTML+=`<option value="${t}">${t}</option>`);
-    roomSet.forEach(r=> filterRoomDay.innerHTML+=`<option value="${r}">${r}</option>`);
-    courseSet.forEach(c=> filterCourseDay.innerHTML+=`<option value="${c}">${c}</option>`)
+    filterSubjectDay.innerHTML=`<option value="">-- Môn dạy --</option>`; subjects.forEach(s=>filterSubjectDay.innerHTML+=`<option value="${s}">${s}</option>`);
+    filterTeacherDay.innerHTML=`<option value="">-- Giáo viên --</option>`; teachers.forEach(t=>filterTeacherDay.innerHTML+=`<option value="${t}">${t}</option>`);
+    filterRoomDay.innerHTML=`<option value="">-- Phòng --</option>`; rooms.forEach(r=>filterRoomDay.innerHTML+=`<option value="${r}">${r}</option>`);
+    filterCourseDay.innerHTML=`<option value="">-- Khóa --</option>`; courses.forEach(c=>filterCourseDay.innerHTML+=`<option value="${c}">${c}</option>`);
 }
 
 // --- Format date ---
@@ -1033,7 +1013,7 @@ function formatDateToDMY(dateStr){
 }
 
 // --- Filter ---
-filterBtnDay.addEventListener('click', ()=>{
+filterBtnDay.addEventListener('click',()=>{
     const selectedDate = formatDateToDMY(filterDateDay.value);
     const selectedSubject = filterSubjectDay.value;
     const selectedTeacher = filterTeacherDay.value;
@@ -1041,20 +1021,20 @@ filterBtnDay.addEventListener('click', ()=>{
     const selectedCourse = filterCourseDay.value;
 
     let filtered = allTeachSchedules;
-    if(selectedDate) filtered = filtered.filter(s=>s.date===selectedDate);
-    if(selectedSubject) filtered = filtered.filter(s=>s.subject===selectedSubject);
-    if(selectedTeacher) filtered = filtered.filter(s=>s.teacher===selectedTeacher);
-    if(selectedRoom) filtered = filtered.filter(s=>s.room===selectedRoom);
-    if(selectedCourse) filtered = filtered.filter(s=>s.course===selectedCourse);
+    if(selectedDate) filtered=filtered.filter(s=>s.date===selectedDate);
+    if(selectedSubject) filtered=filtered.filter(s=>s.subject===selectedSubject);
+    if(selectedTeacher) filtered=filtered.filter(s=>s.teacher===selectedTeacher);
+    if(selectedRoom) filtered=filtered.filter(s=>s.room===selectedRoom);
+    if(selectedCourse) filtered=filtered.filter(s=>s.course===selectedCourse);
 
     showResultDay({schedule: filtered});
 });
 
 // --- Show all ---
-showAllBtnDay.addEventListener('click', ()=>showResultDay({schedule: allTeachSchedules}));
+showAllBtnDay.addEventListener('click',()=>showResultDay({schedule: allTeachSchedules}));
 
 // --- Sort ---
-sortBtnDay.addEventListener('click', ()=>{
+sortBtnDay.addEventListener('click',()=>{
     const tbody = scheduleDetailsDay.querySelector('tbody');
     const rows = Array.from(tbody.querySelectorAll('tr'));
     rows.sort((a,b)=>{
@@ -1062,70 +1042,82 @@ sortBtnDay.addEventListener('click', ()=>{
         const bDate = new Date(b.cells[1].textContent.split('/').reverse().join('-'));
         return aDate - bDate;
     });
-    tbody.innerHTML='';
-    rows.forEach(r=>tbody.appendChild(r));
+    tbody.innerHTML=''; rows.forEach(r=>tbody.appendChild(r));
 });
 
-// --- Initial fetch ---
-fetch('/get_all_teach_schedules')
-.then(res=>res.json())
-.then(data=>{
-    allTeachSchedules = data || [];
-    populateTeachFilters();
-    showResultDay({schedule: allTeachSchedules});
-})
-.catch(err=>console.error(err));
-
-// --- Xuất Excel (Lịch Dạy) ---
-document.getElementById("teach-export-btn").addEventListener("click", function () {
-    // Lấy giá trị filter hiện tại
-    const selectedDate = filterDateDay.value;
-    const selectedSubject = filterSubjectDay.value;
-    const selectedTeacher = filterTeacherDay.value;
-    const selectedRoom = filterRoomDay.value;
-
-    let exportList = allTeachSchedules; // default là toàn bộ
-
-    // Lọc dữ liệu nếu có chọn filter
-    if (selectedDate) exportList = exportList.filter(s => s.date === selectedDate);
-    if (selectedSubject) exportList = exportList.filter(s => s.subject === selectedSubject);
-    if (selectedTeacher) exportList = exportList.filter(s => s.teacher === selectedTeacher);
-    if (selectedRoom) exportList = exportList.filter(s => s.room === selectedRoom);
-
-    if (exportList.length === 0) {
-        alert("Không có dữ liệu để xuất 😅");
-        return;
-    }
-
-    // Chuẩn bị dữ liệu cho Excel
-    const excelData = exportList.map(s => ({
-        "Thứ": s.day || "",
-        "Ngày": s.date || "",
-        "Khóa": s.course || "",
-        "Nhóm": s.group || "",
-        "Môn học": s.subject || "",
-        "Giảng viên": s.teacher || "",
-        "Tiết": s.sessions || "",
-        "Phòng": s.room || ""
+// --- Export Excel ---
+exportBtnDay.addEventListener('click',()=>{
+    if(!allTeachSchedules || allTeachSchedules.length===0){ alert("Không có dữ liệu để xuất 😅"); return;}
+    const exportList = allTeachSchedules.map((e,idx)=>({
+        "#": idx+1, "Môn học": e.subject, "Khóa": e.course, "Nhóm": e.group,
+        "Giảng viên": e.teacher, "Tiết": e.sessions, "Ngày": e.date, "Phòng": e.room
     }));
-
-    // Tạo sheet & workbook
-    const ws = XLSX.utils.json_to_sheet(excelData);
+    const ws = XLSX.utils.json_to_sheet(exportList);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Lịch Dạy");
-
-    // Tự động căn cột
-    ws['!cols'] = Object.keys(excelData[0]).map(() => ({ wch: 20 }));
-
-    // Tên file khác nhau nếu có filter
-    const fileName = (selectedDate || selectedSubject || selectedTeacher || selectedRoom)
-        ? `lichday_filtered_${Date.now()}.xlsx`
-        : `lichday_full_${Date.now()}.xlsx`;
-
-    XLSX.writeFile(wb, fileName);
+    ws['!cols'] = Object.keys(exportList[0]).map(()=>({wch:20}));
+    XLSX.writeFile(wb, `lichday_${Date.now()}.xlsx`);
     alert("✅ Đã xuất file Excel Lịch Dạy thành công!");
 });
 
+// --- Delete ---
+deleteBtnDay.addEventListener('click',async()=>{
+    if(!allTeachSchedules || allTeachSchedules.length===0){ alert("Không có dữ liệu để xóa 😅"); return;}
+
+    const selectedDate = formatDateToDMY(filterDateDay.value);
+    const selectedSubject = filterSubjectDay.value;
+    const selectedTeacher = filterTeacherDay.value;
+    const selectedRoom = filterRoomDay.value;
+    const selectedCourse = filterCourseDay.value;
+
+    const teachesToDelete = allTeachSchedules.filter(t=> 
+        (!selectedDate || t.date===selectedDate) &&
+        (!selectedSubject || t.subject===selectedSubject) &&
+        (!selectedTeacher || t.teacher===selectedTeacher) &&
+        (!selectedRoom || t.room===selectedRoom) &&
+        (!selectedCourse || t.course===selectedCourse)
+    );
+
+    if(teachesToDelete.length===0){ alert("Không có lịch dạy phù hợp để xóa 😅"); return;}
+
+    const confirmDelete = confirm(
+        selectedDate || selectedSubject || selectedTeacher || selectedRoom || selectedCourse
+            ? `⚠ Bạn có chắc muốn xóa ${teachesToDelete.length} lịch dạy này không?`
+            : `⚠ Bạn có chắc muốn xóa TOÀN BỘ lịch dạy không?`
+    );
+    if(!confirmDelete) return;
+
+    try{
+        const res = await fetch("/delete_teach_schedules",{
+            method:'POST',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({ids: teachesToDelete.map(t=>t.id)})
+        });
+        const result = await res.json();
+        if(result.success){
+            await fetchAllTeachSchedules();
+            alert(`✅ Đã xóa thành công ${result.deleted_count} lịch dạy!`);
+        } else {
+            alert(`❌ Xóa thất bại! ${result.error||''}`);
+        }
+    }catch(err){
+        console.error(err);
+        alert("⚠ Có lỗi khi xóa dữ liệu!");
+    }
+});
+
+// --- Fetch all ---
+async function fetchAllTeachSchedules(){
+    try{
+        const res = await fetch('/get_all_teach_schedules');
+        const data = await res.json();
+        allTeachSchedules = data || [];
+        populateTeachFilters();
+        showResultDay({schedule: allTeachSchedules});
+    }catch(err){ console.error(err);}
+}
+
+fetchAllTeachSchedules();
 
 </script>
 </body>
